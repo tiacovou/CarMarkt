@@ -125,8 +125,14 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
   
   return (
     <section className={`bg-white shadow-md ${compact ? 'py-3' : 'py-6'}`}>
-      <div className="container mx-auto px-4">
-        <form onSubmit={handleSubmit} className={`grid grid-cols-1 ${compact ? 'md:grid-cols-5 gap-3' : 'md:grid-cols-3 lg:grid-cols-5 gap-4'}`}>
+      <div className="container mx-auto px-4 lg:px-6">
+        {!compact && (
+          <div className="mb-4">
+            <h2 className="text-lg md:text-xl lg:text-2xl font-bold">Find Your Dream Car</h2>
+            <p className="text-gray-600">Search from thousands of listings</p>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className={`grid grid-cols-1 ${compact ? 'md:grid-cols-3 lg:grid-cols-5 gap-3' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'}`}>
           {/* Make dropdown */}
           <div>
             <Label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">Make</Label>
@@ -209,9 +215,9 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
           
           {/* Search Button */}
           <div className="flex items-end">
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full h-10">
               <Search className="h-4 w-4 mr-2" />
-              Search Cars
+              <span className="whitespace-nowrap">Search Cars</span>
             </Button>
           </div>
         </form>

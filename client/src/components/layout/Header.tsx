@@ -35,21 +35,21 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 lg:px-6">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link href="/">
             <a className="flex items-center space-x-2">
-              <span className="text-primary text-2xl font-bold">CarTrader</span>
+              <span className="text-primary text-xl md:text-2xl font-bold">CarTrader</span>
               <Car className="h-5 w-5 text-primary" />
             </a>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             {navLinks.map((link, index) => (
               <Link key={index} href={link.href}>
-                <a className="text-gray-600 hover:text-primary transition">
+                <a className="text-gray-600 hover:text-primary transition text-sm lg:text-base whitespace-nowrap">
                   {link.text}
                 </a>
               </Link>
@@ -57,9 +57,9 @@ export default function Header() {
           </div>
 
           {/* Auth & Sell Button */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <Link href="/sell">
-              <Button variant="default" className="hidden md:block">
+              <Button variant="default" className="hidden md:block text-sm lg:text-base">
                 Sell Your Car
               </Button>
             </Link>
@@ -68,13 +68,13 @@ export default function Header() {
               <div className="relative hidden md:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-1">
+                    <Button variant="ghost" className="flex items-center space-x-1 text-sm lg:text-base">
                       <User className="h-4 w-4 mr-1" />
-                      <span>{user.name}</span>
+                      <span className="max-w-[100px] lg:max-w-none truncate">{user.name}</span>
                       <ChevronDown className="h-4 w-4 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem asChild>
                       <Link href="/profile">My Profile</Link>
                     </DropdownMenuItem>
@@ -96,7 +96,7 @@ export default function Header() {
               </div>
             ) : (
               <Link href="/auth" className="hidden md:block">
-                <Button variant="ghost">
+                <Button variant="ghost" className="text-sm lg:text-base">
                   <User className="h-4 w-4 mr-2" />
                   Account
                 </Button>

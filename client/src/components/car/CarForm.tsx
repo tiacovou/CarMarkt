@@ -104,17 +104,17 @@ export default function CarForm() {
   // Create car mutation
   const createCarMutation = useMutation({
     mutationFn: async (values: z.infer<typeof carFormSchema>) => {
+      // Double-check that images exist before making the API call
+      if (images.length === 0) {
+        throw new Error("At least one image is required");
+      }
+      
       const res = await apiRequest("POST", "/api/cars", values);
       return await res.json();
     },
     onSuccess: async (car) => {
-      // Upload images if any
-      if (images.length > 0) {
-        await uploadImages(car.id);
-      } else {
-        // If no images, just navigate to the new car page
-        finishSubmission(car.id);
-      }
+      // Upload images
+      await uploadImages(car.id);
     },
     onError: (error) => {
       toast({
@@ -248,6 +248,16 @@ export default function CarForm() {
   };
   
   const onSubmit = (values: z.infer<typeof carFormSchema>) => {
+    // Check if at least one image is uploaded
+    if (images.length === 0) {
+      toast({
+        title: "Image required",
+        description: "At least one image is required for your car listing.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createCarMutation.mutate(values);
   };
   
@@ -490,9 +500,9 @@ export default function CarForm() {
           {/* Image upload */}
           <div className="space-y-4">
             <div>
-              <FormLabel>Car Images</FormLabel>
+              <FormLabel>Car Images (Required)</FormLabel>
               <FormDescription>
-                Upload clear photos of your car. The first image will be the main photo shown in listings.
+                Upload clear photos of your car. At least one image is required. The first image will be the main photo shown in listings.
               </FormDescription>
             </div>
             
@@ -560,8 +570,8 @@ export default function CarForm() {
             </div>
             
             {images.length === 0 && (
-              <p className="text-sm text-amber-600">
-                At least one image is recommended (you can add images after creating the listing).
+              <p className="text-sm text-red-600 font-medium">
+                At least one image is required to create a listing.
               </p>
             )}
           </div>

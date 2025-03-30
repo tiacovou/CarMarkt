@@ -13,19 +13,19 @@ export default function Hero() {
         />
       </div>
       
-      <div className="container mx-auto px-4 py-16 md:py-24 lg:py-32 relative z-20">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Find Your Perfect Car</h1>
-          <p className="text-xl md:text-2xl mb-8">Buy and sell vehicles with confidence on CarTrader</p>
+      <div className="container mx-auto px-4 lg:px-6 py-16 md:py-24 lg:py-36 xl:py-40 relative z-20">
+        <div className="max-w-lg md:max-w-2xl lg:max-w-3xl">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">Find Your Perfect Car</h1>
+          <p className="text-xl md:text-2xl mb-8 max-w-xl lg:max-w-2xl opacity-90">Buy and sell vehicles with confidence on the most trusted car marketplace</p>
           
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/browse">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white text-base md:text-lg px-8 py-6 h-auto">
                 Browse Cars
               </Button>
             </Link>
             <Link href="/sell">
-              <Button size="lg" variant="outline" className="bg-white text-primary hover:bg-gray-100">
+              <Button size="lg" variant="outline" className="bg-white text-primary hover:bg-gray-100 text-base md:text-lg px-8 py-6 h-auto">
                 Sell Your Car
               </Button>
             </Link>
