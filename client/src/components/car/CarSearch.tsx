@@ -87,21 +87,38 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
         ? (value && value !== "any" ? parseInt(value) : undefined) 
         : (value === "any" ? "" : value)
     }));
+    console.log("Search params updated:", searchParams); // Debug
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("Submitting search with params:", searchParams); // Debug
     
     if (onSearch) {
       onSearch(searchParams);
     } else {
       // Build query string for URL
       const queryParams = new URLSearchParams();
-      if (searchParams.make) queryParams.set("make", searchParams.make);
-      if (searchParams.model) queryParams.set("model", searchParams.model);
-      if (searchParams.minYear) queryParams.set("minYear", searchParams.minYear.toString());
-      if (searchParams.maxPrice) queryParams.set("maxPrice", searchParams.maxPrice.toString());
       
+      // Only add parameters that have meaningful values
+      if (searchParams.make && searchParams.make !== "") {
+        queryParams.set("make", searchParams.make);
+      }
+      
+      if (searchParams.model && searchParams.model !== "") {
+        queryParams.set("model", searchParams.model);
+      }
+      
+      if (searchParams.minYear && searchParams.minYear > 0) {
+        queryParams.set("minYear", searchParams.minYear.toString());
+      }
+      
+      if (searchParams.maxPrice && searchParams.maxPrice > 0) {
+        queryParams.set("maxPrice", searchParams.maxPrice.toString());
+      }
+      
+      console.log("QueryParams string:", queryParams.toString()); // Debug
       setLocation(`/browse?${queryParams.toString()}`);
     }
   };

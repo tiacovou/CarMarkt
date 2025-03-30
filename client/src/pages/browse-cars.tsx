@@ -24,8 +24,8 @@ export default function BrowseCars() {
   
   // Create search object from URL params
   const searchObject: CarSearchType = {
-    make: searchParams.get("make") || undefined,
-    model: searchParams.get("model") || undefined,
+    make: searchParams.get("make") || "",
+    model: searchParams.get("model") || "",
     minYear: searchParams.get("minYear") ? parseInt(searchParams.get("minYear")!) : undefined,
     maxPrice: searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!) : undefined,
   };
@@ -50,11 +50,25 @@ export default function BrowseCars() {
   // Handle search
   const handleSearch = (newSearchParams: CarSearchType) => {
     const params = new URLSearchParams();
-    if (newSearchParams.make) params.set("make", newSearchParams.make);
-    if (newSearchParams.model) params.set("model", newSearchParams.model);
-    if (newSearchParams.minYear) params.set("minYear", newSearchParams.minYear.toString());
-    if (newSearchParams.maxPrice) params.set("maxPrice", newSearchParams.maxPrice.toString());
     
+    // Only add parameters that have meaningful values
+    if (newSearchParams.make && newSearchParams.make !== "") {
+      params.set("make", newSearchParams.make);
+    }
+    
+    if (newSearchParams.model && newSearchParams.model !== "") {
+      params.set("model", newSearchParams.model);
+    }
+    
+    if (newSearchParams.minYear && newSearchParams.minYear > 0) {
+      params.set("minYear", newSearchParams.minYear.toString());
+    }
+    
+    if (newSearchParams.maxPrice && newSearchParams.maxPrice > 0) {
+      params.set("maxPrice", newSearchParams.maxPrice.toString());
+    }
+    
+    console.log("Setting URL params:", params.toString());
     setSearchParams(params);
   };
   
