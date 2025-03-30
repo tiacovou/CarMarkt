@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -11,18 +11,59 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import CarCard from "@/components/car/CarCard";
-import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus } from "lucide-react";
+import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard } from "lucide-react";
 import { Link } from "wouter";
-import { Car as CarType, Favorite, Message } from "@shared/schema";
+import { Car as CarType, Favorite, Message, Payment } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserProfile() {
   const { user, logoutMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
+  const { toast } = useToast();
   
   // Fetch user's cars
   const { data: userCars, isLoading: isLoadingCars } = useQuery<CarType[]>({
     queryKey: ["/api/user/cars"],
     enabled: !!user,
+  });
+  
+  // Fetch premium info and payments
+  const { data: premiumInfo, isLoading: isLoadingPremium } = useQuery({
+    queryKey: ["/api/user/premium-info"],
+    enabled: !!user,
+  });
+  
+  // Fetch user's payments
+  const { data: payments, isLoading: isLoadingPayments } = useQuery<Payment[]>({
+    queryKey: ["/api/user/payments"],
+    enabled: !!user,
+  });
+  
+  // Upgrade to premium
+  const upgradeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/user/upgrade", {
+        amount: 5.00,
+        description: "Premium subscription - monthly"
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "Upgrade successful!",
+        description: "You now have premium access with unlimited listings.",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upgrade failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
   
   // Fetch user's favorites
@@ -76,7 +117,7 @@ export default function UserProfile() {
           </div>
           
           <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
               <TabsTrigger value="profile" className="flex gap-2">
                 <User className="h-4 w-4" /> Profile
               </TabsTrigger>
@@ -88,6 +129,9 @@ export default function UserProfile() {
               </TabsTrigger>
               <TabsTrigger value="messages" className="flex gap-2">
                 <MessageSquare className="h-4 w-4" /> Messages
+              </TabsTrigger>
+              <TabsTrigger value="payments" className="flex gap-2">
+                <CreditCard className="h-4 w-4" /> Payments
               </TabsTrigger>
             </TabsList>
             
@@ -176,6 +220,61 @@ export default function UserProfile() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <h3 className="text-lg font-medium mb-2">Premium Status</h3>
+                      <div className="bg-gray-50 p-4 rounded-lg border mb-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <div>
+                            <p className="font-medium">Premium Status</p>
+                            <p className="text-sm text-gray-500">Unlimited car listings with premium access</p>
+                          </div>
+                          {user.isPremium ? (
+                            <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
+                          ) : (
+                            <Badge variant="outline">Inactive</Badge>
+                          )}
+                        </div>
+                        
+                        {!user.isPremium && (
+                          <>
+                            <div className="mb-3">
+                              <div className="flex justify-between text-sm mb-1">
+                                <span>Free listings used</span>
+                                <span className="font-medium">{user.freeListingsUsed} / 5</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-primary h-2 rounded-full" 
+                                  style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                            <Button 
+                              className="w-full" 
+                              onClick={() => upgradeMutation.mutate()}
+                              disabled={upgradeMutation.isPending}
+                            >
+                              {upgradeMutation.isPending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Processing Payment...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="mr-2 h-4 w-4" />
+                                  Upgrade to Premium - €5.00/month
+                                </>
+                              )}
+                            </Button>
+                          </>
+                        )}
+                        
+                        {user.isPremium && (
+                          <p className="text-sm text-gray-500">You have unlimited car listings with your premium subscription.</p>
+                        )}
                       </div>
                     </div>
                     
@@ -322,7 +421,7 @@ export default function UserProfile() {
                                 )}
                               </div>
                               <p className="text-gray-600 text-sm mt-1 mb-2">
-                                {new Date(message.createdAt).toLocaleString()}
+                                {typeof message.createdAt === 'string' ? new Date(message.createdAt).toLocaleString() : 'Just now'}
                               </p>
                               <p className="text-gray-800">{message.content}</p>
                             </div>
@@ -352,6 +451,62 @@ export default function UserProfile() {
                         Browse Cars
                       </Button>
                     </Link>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+            
+            {/* Payments Tab */}
+            <TabsContent value="payments">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Payment History</h2>
+              </div>
+              
+              {isLoadingPayments ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : payments && payments.length > 0 ? (
+                <div className="space-y-4">
+                  {payments.map((payment) => (
+                    <Card key={payment.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center mb-1">
+                              <h3 className="font-medium">{payment.description}</h3>
+                              <Badge 
+                                variant={payment.status === "completed" ? "default" : "outline"}
+                                className="ml-2"
+                              >
+                                {payment.status}
+                              </Badge>
+                            </div>
+                            <p className="text-gray-600 text-sm">
+                              {typeof payment.createdAt === 'string' ? new Date(payment.createdAt).toLocaleString() : 'Just now'}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">€{payment.amount.toFixed(2)}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="py-8">
+                  <CardContent className="flex flex-col items-center justify-center text-center">
+                    <div className="bg-gray-100 p-3 rounded-full mb-4">
+                      <CreditCard className="h-8 w-8 text-gray-500" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">No Payment History</h3>
+                    <p className="text-gray-500 mb-4 max-w-md">
+                      You haven't made any payments yet. Upgrade to premium for unlimited listings or pay for individual premium listings.
+                    </p>
+                    <Button onClick={() => setActiveTab("profile")}>
+                      Go to Premium Options
+                    </Button>
                   </CardContent>
                 </Card>
               )}

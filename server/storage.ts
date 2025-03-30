@@ -4,6 +4,7 @@ import {
   carImages, type CarImage, type InsertCarImage,
   favorites, type Favorite, type InsertFavorite,
   messages, type Message, type InsertMessage,
+  payments, type Payment, type InsertPayment,
   type CarSearch
 } from "@shared/schema";
 import session from "express-session";
@@ -17,11 +18,13 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   
   // Car operations
   getCar(id: number): Promise<Car | undefined>;
   getCars(): Promise<Car[]>;
   getCarsByUser(userId: number): Promise<Car[]>;
+  countUserActiveCars(userId: number): Promise<number>;
   searchCars(search: CarSearch): Promise<Car[]>;
   createCar(car: InsertCar, userId: number): Promise<Car>;
   updateCar(id: number, car: Partial<InsertCar>): Promise<Car | undefined>;
@@ -45,6 +48,11 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<boolean>;
   
+  // Payment operations
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentsByUser(userId: number): Promise<Payment[]>;
+  updatePaymentStatus(id: number, status: string): Promise<Payment | undefined>;
+  
   // Session storage
   sessionStore: any;
 }
@@ -55,6 +63,7 @@ export class MemStorage implements IStorage {
   private carImages: Map<number, CarImage>;
   private favorites: Map<number, Favorite>;
   private messages: Map<number, Message>;
+  private payments: Map<number, Payment>;
   
   sessionStore: any; // Using any to bypass TypeScript errors
   
@@ -63,6 +72,7 @@ export class MemStorage implements IStorage {
   currentCarImageId: number;
   currentFavoriteId: number;
   currentMessageId: number;
+  currentPaymentId: number;
 
   constructor() {
     this.users = new Map();
@@ -70,12 +80,14 @@ export class MemStorage implements IStorage {
     this.carImages = new Map();
     this.favorites = new Map();
     this.messages = new Map();
+    this.payments = new Map();
     
     this.currentUserId = 1;
     this.currentCarId = 1;
     this.currentCarImageId = 1;
     this.currentFavoriteId = 1;
     this.currentMessageId = 1;
+    this.currentPaymentId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000
@@ -102,9 +114,24 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const createdAt = new Date();
-    const user: User = { ...insertUser, id, createdAt };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt,
+      isPremium: false,
+      freeListingsUsed: 0
+    };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) return undefined;
+    
+    const updatedUser = { ...existingUser, ...userData };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   // Car operations
@@ -118,6 +145,10 @@ export class MemStorage implements IStorage {
   
   async getCarsByUser(userId: number): Promise<Car[]> {
     return Array.from(this.cars.values()).filter(car => car.userId === userId);
+  }
+  
+  async countUserActiveCars(userId: number): Promise<number> {
+    return Array.from(this.cars.values()).filter(car => car.userId === userId && car.isActive).length;
   }
   
   async searchCars(search: CarSearch): Promise<Car[]> {
@@ -235,6 +266,28 @@ export class MemStorage implements IStorage {
     message.isRead = true;
     this.messages.set(id, message);
     return true;
+  }
+  
+  // Payment operations
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const id = this.currentPaymentId++;
+    const createdAt = new Date();
+    const newPayment: Payment = { ...payment, id, createdAt };
+    this.payments.set(id, newPayment);
+    return newPayment;
+  }
+  
+  async getPaymentsByUser(userId: number): Promise<Payment[]> {
+    return Array.from(this.payments.values()).filter(payment => payment.userId === userId);
+  }
+  
+  async updatePaymentStatus(id: number, status: string): Promise<Payment | undefined> {
+    const payment = this.payments.get(id);
+    if (!payment) return undefined;
+    
+    payment.status = status;
+    this.payments.set(id, payment);
+    return payment;
   }
 }
 

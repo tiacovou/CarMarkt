@@ -10,6 +10,7 @@ import { randomUUID } from "crypto";
 import { 
   insertCarSchema, 
   insertMessageSchema, 
+  insertPaymentSchema,
   carSearchSchema
 } from "@shared/schema";
 
@@ -130,7 +131,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cars", checkAuth, async (req, res, next) => {
     try {
       const validatedCar = insertCarSchema.parse(req.body);
+      
+      // Check if user has reached free listing limit and needs to pay
+      const user = await storage.getUser(req.user.id);
+      const activeListings = await storage.countUserActiveCars(req.user.id);
+      
+      if (!user?.isPremium && activeListings >= 5) {
+        return res.status(402).json({ 
+          message: "You have reached your limit of 5 free car listings. Please upgrade to premium to list more cars.",
+          requiresPayment: true
+        });
+      }
+      
       const car = await storage.createCar(validatedCar, req.user.id);
+      
+      // Increment free listings used if not premium
+      if (!user?.isPremium) {
+        await storage.updateUser(req.user.id, {
+          freeListingsUsed: (user?.freeListingsUsed || 0) + 1
+        });
+      }
+      
       res.status(201).json(car);
     } catch (error) {
       next(error);
@@ -388,6 +409,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.markMessageAsRead(messageId);
       res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Payment routes
+  app.get("/api/user/premium-info", checkAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      const activeListings = await storage.countUserActiveCars(req.user.id);
+      
+      res.json({
+        isPremium: user?.isPremium || false,
+        freeListingsUsed: user?.freeListingsUsed || 0,
+        freeListingsRemaining: Math.max(0, 5 - (user?.freeListingsUsed || 0)),
+        activeListings,
+        requiresPayment: !user?.isPremium && activeListings >= 5
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/payments", checkAuth, async (req, res, next) => {
+    try {
+      const { amount, description } = req.body;
+      
+      // Simple validation
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Invalid payment amount" });
+      }
+      
+      // Create a payment record
+      const payment = await storage.createPayment({
+        userId: req.user.id,
+        amount,
+        description,
+        status: "pending"
+      });
+      
+      // In a real app, this would integrate with a payment provider
+      // For now, we'll simulate successful payment
+      
+      // Update payment status to completed
+      const updatedPayment = await storage.updatePaymentStatus(payment.id, "completed");
+      
+      // If payment is for premium status, update user
+      if (description.includes("premium")) {
+        await storage.updateUser(req.user.id, { isPremium: true });
+      }
+      
+      res.status(201).json(updatedPayment);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.get("/api/user/payments", checkAuth, async (req, res, next) => {
+    try {
+      const payments = await storage.getPaymentsByUser(req.user.id);
+      res.json(payments);
     } catch (error) {
       next(error);
     }

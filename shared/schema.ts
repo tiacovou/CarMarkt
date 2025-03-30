@@ -10,12 +10,16 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   phone: text("phone"),
+  isPremium: boolean("is_premium").default(false).notNull(),
+  freeListingsUsed: integer("free_listings_used").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  isPremium: true,
+  freeListingsUsed: true,
 });
 
 // Car condition enum
@@ -114,3 +118,21 @@ export const carSearchSchema = z.object({
 });
 
 export type CarSearch = z.infer<typeof carSearchSchema>;
+
+// Payment schema
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  amount: integer("amount").notNull(), // Amount in cents (€)
+  description: text("description").notNull(),
+  status: text("status").notNull().default("pending"), // pending, completed, failed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
