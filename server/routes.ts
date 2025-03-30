@@ -95,12 +95,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cars/search", async (req, res, next) => {
     try {
       const query = req.query;
+      
+      // Convert empty strings to undefined for better handling
       const search = {
-        make: query.make as string,
-        model: query.model as string,
-        minYear: query.minYear ? parseInt(query.minYear as string) : undefined,
-        maxPrice: query.maxPrice ? parseInt(query.maxPrice as string) : undefined
+        make: query.make && (query.make as string).trim() !== "" ? query.make as string : "",
+        model: query.model && (query.model as string).trim() !== "" ? query.model as string : "",
+        minYear: query.minYear && (query.minYear as string).trim() !== "" ? parseInt(query.minYear as string) : undefined,
+        maxPrice: query.maxPrice && (query.maxPrice as string).trim() !== "" ? parseInt(query.maxPrice as string) : undefined
       };
+      
+      console.log("Search params:", search);
       
       // Validate search params
       const validatedSearch = carSearchSchema.parse(search);

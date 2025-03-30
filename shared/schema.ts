@@ -107,8 +107,8 @@ export type Message = typeof messages.$inferSelect;
 
 // Extended schemas for validation
 export const carSearchSchema = z.object({
-  make: z.string().optional(),
-  model: z.string().optional(),
+  make: z.string().default(""),
+  model: z.string().default(""),
   minYear: z.number().optional(),
   maxPrice: z.number().optional(),
 });
