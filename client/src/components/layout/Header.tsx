@@ -30,7 +30,6 @@ export default function Header() {
   const navLinks = [
     { text: "Browse Cars", href: "/browse" },
     { text: "How It Works", href: "/#how-it-works" },
-    { text: "Reviews", href: "/#testimonials" },
   ];
 
   return (
