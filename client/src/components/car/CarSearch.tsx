@@ -17,29 +17,29 @@ import { CarSearch as CarSearchType } from "@shared/schema";
 // Car brands for the dropdown
 const carBrands = [
   { value: "any", label: "Any Make" },
-  { value: "toyota", label: "Toyota" },
-  { value: "honda", label: "Honda" },
-  { value: "ford", label: "Ford" },
-  { value: "bmw", label: "BMW" },
-  { value: "mercedes", label: "Mercedes-Benz" },
-  { value: "audi", label: "Audi" },
-  { value: "tesla", label: "Tesla" },
-  { value: "chevrolet", label: "Chevrolet" },
-  { value: "jeep", label: "Jeep" },
+  { value: "Toyota", label: "Toyota" },
+  { value: "Honda", label: "Honda" },
+  { value: "Ford", label: "Ford" },
+  { value: "BMW", label: "BMW" },
+  { value: "Mercedes-Benz", label: "Mercedes-Benz" },
+  { value: "Audi", label: "Audi" },
+  { value: "Tesla", label: "Tesla" },
+  { value: "Chevrolet", label: "Chevrolet" },
+  { value: "Jeep", label: "Jeep" },
 ];
 
 // Car models for the dropdown - could be expanded based on selected make
 const carModels = [
   { value: "any", label: "Any Model" },
-  { value: "camry", label: "Camry" },
-  { value: "corolla", label: "Corolla" },
-  { value: "civic", label: "Civic" },
-  { value: "accord", label: "Accord" },
-  { value: "model3", label: "Model 3" },
-  { value: "modelY", label: "Model Y" },
-  { value: "f150", label: "F-150" },
-  { value: "mustang", label: "Mustang" },
-  { value: "wrangler", label: "Wrangler" },
+  { value: "Camry", label: "Camry" },
+  { value: "Corolla", label: "Corolla" },
+  { value: "Civic", label: "Civic" },
+  { value: "Accord", label: "Accord" },
+  { value: "Model 3", label: "Model 3" },
+  { value: "Model Y", label: "Model Y" },
+  { value: "F-150", label: "F-150" },
+  { value: "Mustang", label: "Mustang" },
+  { value: "Wrangler", label: "Wrangler" },
 ];
 
 // Price ranges for dropdown
