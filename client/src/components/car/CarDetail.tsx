@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Car, Favorite } from "@shared/schema";
+import { Car, CarImage, Favorite, User as UserType } from "@shared/schema";
 import { useParams } from "wouter";
 import {
   Carousel,
@@ -44,7 +44,8 @@ import {
   Car as CarIcon,
   Paintbrush,
   MessageSquare,
-  User,
+  User as UserIcon,
+  Phone,
   AlertTriangle,
 } from "lucide-react";
 
@@ -58,6 +59,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
   const queryClient = useQueryClient();
   const [contactMessage, setContactMessage] = useState("");
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   
   // Fetch car data
   const { data: car, isLoading: isLoadingCar } = useQuery<Car>({
@@ -65,15 +67,21 @@ export default function CarDetail({ carId }: CarDetailProps) {
   });
   
   // Fetch car images
-  const { data: carImages, isLoading: isLoadingImages } = useQuery({
+  const { data: carImages, isLoading: isLoadingImages } = useQuery<CarImage[]>({
     queryKey: [`/api/cars/${carId}/images`],
     enabled: !!carId,
   });
   
   // Fetch user favorites to check if car is favorited
-  const { data: favorites, isLoading: isLoadingFavorites } = useQuery({
+  const { data: favorites, isLoading: isLoadingFavorites } = useQuery<Favorite[]>({
     queryKey: ["/api/user/favorites"],
     enabled: !!user,
+  });
+  
+  // Fetch seller information
+  const { data: seller } = useQuery<{id: number; name: string; phone?: string}>({
+    queryKey: [`/api/users/${car?.userId}`],
+    enabled: !!car?.userId,
   });
   
   const favorite = favorites?.find(fav => fav.carId === carId);
@@ -463,11 +471,11 @@ export default function CarDetail({ carId }: CarDetailProps) {
             <h3 className="text-lg font-semibold mb-4">About the Seller</h3>
             <div className="flex items-center mb-4">
               <div className="bg-gray-200 h-12 w-12 rounded-full flex items-center justify-center mr-3">
-                <User className="h-6 w-6 text-gray-700" />
+                <UserIcon className="h-6 w-6 text-gray-700" />
               </div>
               <div>
-                <p className="font-medium">Seller Name</p>
-                <p className="text-gray-600 text-sm">Member since January 2023</p>
+                <p className="font-medium">{seller?.name || "Loading..."}</p>
+                <p className="text-gray-600 text-sm">Car Seller</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 text-yellow-400 mb-1">
@@ -488,9 +496,49 @@ export default function CarDetail({ carId }: CarDetailProps) {
               </svg>
               <span className="text-gray-600 text-sm">(12 reviews)</span>
             </div>
-            <p className="text-gray-700 text-sm">
+            <p className="text-gray-700 text-sm mb-4">
               Responds quickly to inquiries and provides detailed information.
             </p>
+            
+            {/* Phone number - only shown if user is logged in */}
+            {user && seller?.phone && (
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                    Phone Number
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowPhoneNumber(!showPhoneNumber)}
+                  >
+                    {showPhoneNumber ? "Hide" : "Show"}
+                  </Button>
+                </div>
+                {showPhoneNumber ? (
+                  <p className="text-primary font-medium">{seller.phone}</p>
+                ) : (
+                  <p className="text-gray-500">●●●●●●●●●●</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {showPhoneNumber ? 
+                    "You can now contact the seller directly." : 
+                    "Click 'Show' to reveal the phone number."}
+                </p>
+              </div>
+            )}
+            
+            {!user && (
+              <div className="border-t pt-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-700">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 inline mr-1" />
+                    Log in to view seller's phone number
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

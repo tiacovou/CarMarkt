@@ -55,6 +55,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
   
+  // Add a route to get user by ID (public but with limited info)
+  app.get("/api/users/:id", async (req, res, next) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Return only public information
+      const publicUserInfo = {
+        id: user.id,
+        name: user.name,
+        // Phone is only included if the requesting user is authenticated
+        phone: req.isAuthenticated() ? user.phone : undefined
+      };
+      
+      res.json(publicUserInfo);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Serve uploaded files
   app.use('/uploads', express.static(uploadsDir));
   
