@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,19 +28,82 @@ const carBrands = [
   { value: "Jeep", label: "Jeep" },
 ];
 
-// Car models for the dropdown - could be expanded based on selected make
-const carModels = [
-  { value: "any", label: "Any Model" },
-  { value: "Camry", label: "Camry" },
-  { value: "Corolla", label: "Corolla" },
-  { value: "Civic", label: "Civic" },
-  { value: "Accord", label: "Accord" },
-  { value: "Model 3", label: "Model 3" },
-  { value: "Model Y", label: "Model Y" },
-  { value: "F-150", label: "F-150" },
-  { value: "Mustang", label: "Mustang" },
-  { value: "Wrangler", label: "Wrangler" },
-];
+// Car models organized by make
+const carModelsByMake: Record<string, Array<{ value: string, label: string }>> = {
+  "any": [{ value: "any", label: "Any Model" }],
+  "Toyota": [
+    { value: "any", label: "Any Model" },
+    { value: "Camry", label: "Camry" },
+    { value: "Corolla", label: "Corolla" },
+    { value: "RAV4", label: "RAV4" },
+    { value: "Highlander", label: "Highlander" },
+    { value: "Tacoma", label: "Tacoma" },
+  ],
+  "Honda": [
+    { value: "any", label: "Any Model" },
+    { value: "Civic", label: "Civic" },
+    { value: "Accord", label: "Accord" },
+    { value: "CR-V", label: "CR-V" },
+    { value: "Pilot", label: "Pilot" },
+    { value: "Odyssey", label: "Odyssey" },
+  ],
+  "Ford": [
+    { value: "any", label: "Any Model" },
+    { value: "F-150", label: "F-150" },
+    { value: "Mustang", label: "Mustang" },
+    { value: "Explorer", label: "Explorer" },
+    { value: "Escape", label: "Escape" },
+    { value: "Edge", label: "Edge" },
+  ],
+  "BMW": [
+    { value: "any", label: "Any Model" },
+    { value: "3 Series", label: "3 Series" },
+    { value: "5 Series", label: "5 Series" },
+    { value: "X3", label: "X3" },
+    { value: "X5", label: "X5" },
+    { value: "7 Series", label: "7 Series" },
+  ],
+  "Mercedes-Benz": [
+    { value: "any", label: "Any Model" },
+    { value: "C-Class", label: "C-Class" },
+    { value: "E-Class", label: "E-Class" },
+    { value: "S-Class", label: "S-Class" },
+    { value: "GLC", label: "GLC" },
+    { value: "GLE", label: "GLE" },
+  ],
+  "Audi": [
+    { value: "any", label: "Any Model" },
+    { value: "A3", label: "A3" },
+    { value: "A4", label: "A4" },
+    { value: "A6", label: "A6" },
+    { value: "Q5", label: "Q5" },
+    { value: "Q7", label: "Q7" },
+  ],
+  "Tesla": [
+    { value: "any", label: "Any Model" },
+    { value: "Model 3", label: "Model 3" },
+    { value: "Model Y", label: "Model Y" },
+    { value: "Model S", label: "Model S" },
+    { value: "Model X", label: "Model X" },
+    { value: "Cybertruck", label: "Cybertruck" },
+  ],
+  "Chevrolet": [
+    { value: "any", label: "Any Model" },
+    { value: "Silverado", label: "Silverado" },
+    { value: "Equinox", label: "Equinox" },
+    { value: "Tahoe", label: "Tahoe" },
+    { value: "Malibu", label: "Malibu" },
+    { value: "Camaro", label: "Camaro" },
+  ],
+  "Jeep": [
+    { value: "any", label: "Any Model" },
+    { value: "Wrangler", label: "Wrangler" },
+    { value: "Grand Cherokee", label: "Grand Cherokee" },
+    { value: "Cherokee", label: "Cherokee" },
+    { value: "Compass", label: "Compass" },
+    { value: "Gladiator", label: "Gladiator" },
+  ]
+};
 
 // Price ranges for dropdown
 const priceRanges = [
@@ -80,13 +143,30 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
     maxPrice: initialSearchParams?.get("maxPrice") ? parseInt(initialSearchParams.get("maxPrice")!) : undefined,
   });
   
+  // Get the current models based on selected make
+  const currentModels = useMemo(() => {
+    // If make is empty string, use the "any" models
+    const makeKey = searchParams.make || "any";
+    // If the make is not in our mapping, default to just the "Any Model" option
+    return carModelsByMake[makeKey] || carModelsByMake["any"];
+  }, [searchParams.make]);
+  
   const handleChange = (key: keyof CarSearchType, value: string) => {
-    setSearchParams(prev => ({
-      ...prev,
-      [key]: key === "minYear" || key === "maxPrice" 
-        ? (value && value !== "any" ? parseInt(value) : undefined) 
-        : (value === "any" ? "" : value)
-    }));
+    if (key === "make") {
+      // When make changes, reset model to empty string
+      setSearchParams(prev => ({
+        ...prev,
+        make: value === "any" ? "" : value,
+        model: "" // Reset model when make changes
+      }));
+    } else {
+      setSearchParams(prev => ({
+        ...prev,
+        [key]: key === "minYear" || key === "maxPrice" 
+          ? (value && value !== "any" ? parseInt(value) : undefined) 
+          : (value === "any" ? "" : value)
+      }));
+    }
     console.log("Search params updated:", searchParams); // Debug
   };
   
@@ -164,7 +244,7 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
                 <SelectValue placeholder="Any Model" />
               </SelectTrigger>
               <SelectContent>
-                {carModels.map((model) => (
+                {currentModels.map((model) => (
                   <SelectItem key={model.value} value={model.value}>
                     {model.label}
                   </SelectItem>
