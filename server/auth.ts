@@ -99,7 +99,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: { message: string } | undefined) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: "Invalid credentials" });
       
@@ -126,5 +126,41 @@ export function setupAuth(app: Express) {
     // Don't send the password back to the client
     const { password, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
+  });
+  
+  app.post("/api/user/change-password", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) return res.sendStatus(401);
+      
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Both current and new password are required" });
+      }
+      
+      // Get fresh user data
+      const user = await storage.getUser(req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Verify current password
+      const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password);
+      
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+      
+      // Hash new password
+      const hashedNewPassword = await hashPassword(newPassword);
+      
+      // Update user with new password
+      await storage.updateUser(user.id, { password: hashedNewPassword });
+      
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
   });
 }

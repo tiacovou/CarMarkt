@@ -4,22 +4,54 @@ import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import CarCard from "@/components/car/CarCard";
-import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard } from "lucide-react";
+import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock } from "lucide-react";
 import { Link } from "wouter";
 import { Car as CarType, Favorite, Message, Payment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Password change form schema
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  confirmPassword: z.string().min(1, "Please confirm your new password"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "New passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type PasswordChangeFormValues = z.infer<typeof passwordChangeSchema>;
+
 export default function UserProfile() {
   const { user, logoutMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const { toast } = useToast();
   
   // Fetch user's cars
@@ -89,6 +121,48 @@ export default function UserProfile() {
     queryKey: ["/api/user/messages"],
     enabled: !!user,
   });
+  
+  // Setup password change form
+  const passwordForm = useForm<PasswordChangeFormValues>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    }
+  });
+  
+  // Password change mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: PasswordChangeFormValues) => {
+      const res = await apiRequest("POST", "/api/user/change-password", {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password changed successfully",
+        description: "Your password has been updated",
+        variant: "default",
+      });
+      
+      setIsPasswordModalOpen(false);
+      passwordForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Password change failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const handlePasswordSubmit = (data: PasswordChangeFormValues) => {
+    changePasswordMutation.mutate(data);
+  };
   
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -285,7 +359,14 @@ export default function UserProfile() {
                           <label className="text-sm font-medium mb-1 block">Password</label>
                           <div className="flex">
                             <Input type="password" value="••••••••" disabled className="bg-gray-50" />
-                            <Button variant="outline" className="ml-2">Change</Button>
+                            <Button 
+                              variant="outline" 
+                              className="ml-2"
+                              onClick={() => setIsPasswordModalOpen(true)}
+                            >
+                              <Lock className="h-4 w-4 mr-1" />
+                              Change
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -503,6 +584,99 @@ export default function UserProfile() {
         </div>
       </main>
       <Footer />
+      
+      {/* Password Change Modal */}
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Update your account password. Please enter your current password for verification.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-4">
+              <FormField
+                control={passwordForm.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Enter your current password" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={passwordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Enter new password" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm New Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Confirm new password" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsPasswordModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={changePasswordMutation.isPending}
+                >
+                  {changePasswordMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Changing...
+                    </>
+                  ) : (
+                    "Change Password"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
