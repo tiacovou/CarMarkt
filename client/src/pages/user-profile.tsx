@@ -297,14 +297,8 @@ export default function UserProfile() {
             
             {/* Listings Tab */}
             <TabsContent value="listings">
-              <div className="flex justify-between items-center mb-6">
+              <div className="mb-6">
                 <h2 className="text-xl font-semibold">My Car Listings</h2>
-                <Link href="/sell">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add New Listing
-                  </Button>
-                </Link>
               </div>
               
               {isLoadingCars ? (
@@ -328,14 +322,8 @@ export default function UserProfile() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">No Listings Yet</h3>
                     <p className="text-gray-500 mb-4 max-w-md">
-                      You haven't created any car listings yet. Create your first listing to start selling!
+                      You don't have any car listings yet. Your active listings will appear here.
                     </p>
-                    <Link href="/sell">
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Listing
-                      </Button>
-                    </Link>
                   </CardContent>
                 </Card>
               )}
