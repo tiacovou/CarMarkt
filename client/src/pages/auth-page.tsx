@@ -133,8 +133,8 @@ export default function AuthPage() {
           variant: "default",
         });
         
-        // Navigate to home page after successful registration
-        navigate("/");
+        // Navigate to profile page after successful registration
+        navigate("/user/profile");
       },
       onError: (error) => {
         toast({
