@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,10 +19,15 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Car, Mail, User, Lock, UserPlus, LogIn, Loader2 } from "lucide-react";
 import { z } from "zod";
+import RegisterVerification from "@/components/auth/RegisterVerification";
+import { User as UserType } from "@shared/schema";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation, registerMutation, isLoading } = useAuth();
+  const [registerStep, setRegisterStep] = useState<"form" | "verification">("form");
+  const [newUser, setNewUser] = useState<UserType | null>(null);
+  const [verificationCode, setVerificationCode] = useState<string | undefined>(undefined);
   
   // Redirect to home if already logged in
   useEffect(() => {
@@ -59,7 +64,37 @@ export default function AuthPage() {
   
   // Handle register submission
   const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
-    registerMutation.mutate(values);
+    registerMutation.mutate(values, {
+      onSuccess: (user, variables) => {
+        // Start the verification process
+        setNewUser(user);
+        
+        // Request verification code
+        fetch("/api/user/verify-phone/request", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ phone: variables.phone })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.code) {
+            setVerificationCode(data.code);
+          }
+          setRegisterStep("verification");
+        })
+        .catch(err => {
+          console.error("Error sending verification code:", err);
+          // Continue anyway as the user is already registered
+          setRegisterStep("verification");
+        });
+      }
+    });
+  };
+  
+  const handleVerificationComplete = () => {
+    navigate("/");
   };
   
   if (isLoading) {
@@ -67,6 +102,25 @@ export default function AuthPage() {
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+    );
+  }
+  
+  // Show phone verification if we're in the verification step
+  if (registerStep === "verification" && newUser) {
+    return (
+      <>
+        <Header />
+        <main className="py-10 bg-gray-50 min-h-[calc(100vh-64px)]">
+          <div className="container mx-auto px-4">
+            <RegisterVerification 
+              user={newUser} 
+              verificationCode={verificationCode}
+              onVerificationComplete={handleVerificationComplete}
+            />
+          </div>
+        </main>
+        <Footer />
+      </>
     );
   }
   
@@ -213,11 +267,14 @@ export default function AuthPage() {
                               name="phone"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Phone (Optional)</FormLabel>
+                                  <FormLabel>Phone Number</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Enter your phone number" {...field} />
+                                    <Input placeholder="+357 99 123456" {...field} />
                                   </FormControl>
                                   <FormMessage />
+                                  <p className="text-xs text-muted-foreground">
+                                    Cyprus format: +357 followed by your mobile number
+                                  </p>
                                 </FormItem>
                               )}
                             />
