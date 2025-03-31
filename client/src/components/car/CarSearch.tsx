@@ -14,23 +14,137 @@ import { useLocation } from "wouter";
 import { Search } from "lucide-react";
 import { CarSearch as CarSearchType } from "@shared/schema";
 
-// Car brands for the dropdown
+// Car brands for the dropdown - Focused on Cyprus market
 const carBrands = [
   { value: "any", label: "Any Make" },
   { value: "Toyota", label: "Toyota" },
-  { value: "Honda", label: "Honda" },
-  { value: "Ford", label: "Ford" },
-  { value: "BMW", label: "BMW" },
+  { value: "Volkswagen", label: "Volkswagen" },
   { value: "Mercedes-Benz", label: "Mercedes-Benz" },
+  { value: "BMW", label: "BMW" },
+  { value: "Nissan", label: "Nissan" },
+  { value: "Honda", label: "Honda" },
+  { value: "Mazda", label: "Mazda" },
+  { value: "Peugeot", label: "Peugeot" },
   { value: "Audi", label: "Audi" },
-  { value: "Tesla", label: "Tesla" },
-  { value: "Chevrolet", label: "Chevrolet" },
-  { value: "Jeep", label: "Jeep" },
+  { value: "Hyundai", label: "Hyundai" },
+  { value: "Kia", label: "Kia" },
+  { value: "Renault", label: "Renault" },
+  { value: "Opel", label: "Opel" },
+  { value: "Ford", label: "Ford" },
 ];
 
 // Car models organized by make - verified with current information
 const carModelsByMake: Record<string, Array<{ value: string, label: string }>> = {
   "any": [{ value: "any", label: "Any Model" }],
+  "Volkswagen": [
+    { value: "any", label: "Any Model" },
+    { value: "Golf", label: "Golf" },
+    { value: "Polo", label: "Polo" },
+    { value: "Passat", label: "Passat" },
+    { value: "Tiguan", label: "Tiguan" },
+    { value: "T-Roc", label: "T-Roc" },
+    { value: "T-Cross", label: "T-Cross" },
+    { value: "Touran", label: "Touran" },
+    { value: "Touareg", label: "Touareg" },
+    { value: "ID.3", label: "ID.3" },
+    { value: "ID.4", label: "ID.4" },
+    { value: "ID.5", label: "ID.5" },
+    { value: "Arteon", label: "Arteon" },
+    { value: "Caddy", label: "Caddy" },
+    { value: "Transporter", label: "Transporter" }
+  ],
+  "Nissan": [
+    { value: "any", label: "Any Model" },
+    { value: "Qashqai", label: "Qashqai" },
+    { value: "Juke", label: "Juke" },
+    { value: "X-Trail", label: "X-Trail" },
+    { value: "Micra", label: "Micra" },
+    { value: "Leaf", label: "Leaf" },
+    { value: "Navara", label: "Navara" },
+    { value: "Note", label: "Note" },
+    { value: "Ariya", label: "Ariya" },
+    { value: "Pulsar", label: "Pulsar" }
+  ],
+  "Mazda": [
+    { value: "any", label: "Any Model" },
+    { value: "Mazda2", label: "Mazda2" },
+    { value: "Mazda3", label: "Mazda3" },
+    { value: "Mazda6", label: "Mazda6" },
+    { value: "CX-3", label: "CX-3" },
+    { value: "CX-30", label: "CX-30" },
+    { value: "CX-5", label: "CX-5" },
+    { value: "CX-60", label: "CX-60" },
+    { value: "MX-5", label: "MX-5" },
+    { value: "MX-30", label: "MX-30" }
+  ],
+  "Peugeot": [
+    { value: "any", label: "Any Model" },
+    { value: "108", label: "108" },
+    { value: "208", label: "208" },
+    { value: "308", label: "308" },
+    { value: "508", label: "508" },
+    { value: "2008", label: "2008" },
+    { value: "3008", label: "3008" },
+    { value: "5008", label: "5008" },
+    { value: "Rifter", label: "Rifter" },
+    { value: "Traveller", label: "Traveller" },
+    { value: "Partner", label: "Partner" },
+    { value: "Expert", label: "Expert" },
+    { value: "e-208", label: "e-208" },
+    { value: "e-2008", label: "e-2008" }
+  ],
+  "Hyundai": [
+    { value: "any", label: "Any Model" },
+    { value: "i10", label: "i10" },
+    { value: "i20", label: "i20" },
+    { value: "i30", label: "i30" },
+    { value: "Kona", label: "Kona" },
+    { value: "Tucson", label: "Tucson" },
+    { value: "Santa Fe", label: "Santa Fe" },
+    { value: "IONIQ", label: "IONIQ" },
+    { value: "IONIQ 5", label: "IONIQ 5" },
+    { value: "IONIQ 6", label: "IONIQ 6" },
+    { value: "Bayon", label: "Bayon" }
+  ],
+  "Kia": [
+    { value: "any", label: "Any Model" },
+    { value: "Picanto", label: "Picanto" },
+    { value: "Rio", label: "Rio" },
+    { value: "Ceed", label: "Ceed" },
+    { value: "Sportage", label: "Sportage" },
+    { value: "Sorento", label: "Sorento" },
+    { value: "Niro", label: "Niro" },
+    { value: "EV6", label: "EV6" },
+    { value: "Stonic", label: "Stonic" },
+    { value: "XCeed", label: "XCeed" },
+    { value: "Proceed", label: "Proceed" }
+  ],
+  "Renault": [
+    { value: "any", label: "Any Model" },
+    { value: "Clio", label: "Clio" },
+    { value: "Captur", label: "Captur" },
+    { value: "Megane", label: "Megane" },
+    { value: "Kadjar", label: "Kadjar" },
+    { value: "Austral", label: "Austral" },
+    { value: "Kangoo", label: "Kangoo" },
+    { value: "Zoe", label: "Zoe" },
+    { value: "Twingo", label: "Twingo" },
+    { value: "Arkana", label: "Arkana" },
+    { value: "Trafic", label: "Trafic" },
+    { value: "Master", label: "Master" }
+  ],
+  "Opel": [
+    { value: "any", label: "Any Model" },
+    { value: "Corsa", label: "Corsa" },
+    { value: "Astra", label: "Astra" },
+    { value: "Mokka", label: "Mokka" },
+    { value: "Crossland", label: "Crossland" },
+    { value: "Grandland", label: "Grandland" },
+    { value: "Combo", label: "Combo" },
+    { value: "Vivaro", label: "Vivaro" },
+    { value: "Zafira", label: "Zafira" },
+    { value: "Insignia", label: "Insignia" }
+  ],
   "Toyota": [
     { value: "any", label: "Any Model" },
     { value: "4Runner", label: "4Runner" },
@@ -213,24 +327,24 @@ const carModelsByMake: Record<string, Array<{ value: string, label: string }>> =
 // Price ranges for dropdown
 const priceRanges = [
   { value: "any", label: "No Max Price" },
-  { value: "5000", label: "$5,000" },
-  { value: "10000", label: "$10,000" },
-  { value: "15000", label: "$15,000" },
-  { value: "20000", label: "$20,000" },
-  { value: "25000", label: "$25,000" },
-  { value: "30000", label: "$30,000" },
-  { value: "35000", label: "$35,000" },
-  { value: "40000", label: "$40,000" },
-  { value: "45000", label: "$45,000" },
-  { value: "50000", label: "$50,000" },
-  { value: "60000", label: "$60,000" },
-  { value: "70000", label: "$70,000" },
-  { value: "80000", label: "$80,000" },
-  { value: "90000", label: "$90,000" },
-  { value: "100000", label: "$100,000" },
-  { value: "125000", label: "$125,000" },
-  { value: "150000", label: "$150,000" },
-  { value: "200000", label: "$200,000" },
+  { value: "5000", label: "€5,000" },
+  { value: "10000", label: "€10,000" },
+  { value: "15000", label: "€15,000" },
+  { value: "20000", label: "€20,000" },
+  { value: "25000", label: "€25,000" },
+  { value: "30000", label: "€30,000" },
+  { value: "35000", label: "€35,000" },
+  { value: "40000", label: "€40,000" },
+  { value: "45000", label: "€45,000" },
+  { value: "50000", label: "€50,000" },
+  { value: "60000", label: "€60,000" },
+  { value: "70000", label: "€70,000" },
+  { value: "80000", label: "€80,000" },
+  { value: "90000", label: "€90,000" },
+  { value: "100000", label: "€100,000" },
+  { value: "125000", label: "€125,000" },
+  { value: "150000", label: "€150,000" },
+  { value: "200000", label: "€200,000" },
 ];
 
 // Year ranges for dropdown
@@ -288,7 +402,7 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
     
     if (key === 'make') return searchParams.make;
     if (key === 'model') return searchParams.model;
-    if (key === 'maxPrice') return `$${searchParams.maxPrice?.toLocaleString()}`;
+    if (key === 'maxPrice') return `€${searchParams.maxPrice?.toLocaleString()}`;
     if (key === 'minYear') return searchParams.minYear?.toString() || '';
     
     return '';
@@ -351,8 +465,8 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
       <div className="container mx-auto px-6 lg:px-8">
         {!compact && (
           <div className="mb-4">
-            <h2 className="text-lg md:text-xl lg:text-2xl font-bold">Find Your Dream Car</h2>
-            <p className="text-gray-600">Search from thousands of listings</p>
+            <h2 className="text-lg md:text-xl lg:text-2xl font-bold">Find Your Dream Car in Cyprus</h2>
+            <p className="text-gray-600">Search from thousands of cars across the island</p>
           </div>
         )}
         <form onSubmit={handleSubmit} className={`grid grid-cols-1 ${compact ? 'sm:grid-cols-2 lg:grid-cols-5 gap-4' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'}`}>

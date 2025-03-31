@@ -98,11 +98,11 @@ export default function BrowseCars() {
       <main className="min-h-screen bg-gray-50">
         <div className="bg-primary text-white py-8">
           <div className="container mx-auto px-4">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Browse Cars</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Browse Cars in Cyprus</h1>
             <p className="text-white/80">
               {searchParams.toString() 
                 ? "Showing filtered results" 
-                : "Explore our collection of quality vehicles"}
+                : "Explore our collection of quality vehicles across Cyprus"}
             </p>
           </div>
         </div>

@@ -86,14 +86,14 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
             </Button>
           </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent py-2 px-3">
-            <span className="text-white font-semibold text-lg">${car.price.toLocaleString()}</span>
+            <span className="text-white font-semibold text-lg">€{car.price.toLocaleString()}</span>
           </div>
         </div>
         
         <div className="p-4">
           <div className="mb-2">
             <h3 className="font-bold text-base md:text-lg truncate">{car.year} {car.make} {car.model}</h3>
-            <p className="text-gray-600 text-sm mb-2 truncate">{car.mileage.toLocaleString()} miles • {car.location}</p>
+            <p className="text-gray-600 text-sm mb-2 truncate">{car.mileage.toLocaleString()} km • {car.location}</p>
           </div>
           
           <div className="flex space-x-2 mb-3">
@@ -134,13 +134,13 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
           </Button>
         </div>
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent py-3 px-4">
-          <span className="text-white font-semibold text-xl md:text-2xl">${car.price.toLocaleString()}</span>
+          <span className="text-white font-semibold text-xl md:text-2xl">€{car.price.toLocaleString()}</span>
         </div>
       </div>
       
       <div className="p-4 md:p-5">
         <h3 className="font-bold text-lg md:text-xl mb-1">{car.year} {car.make} {car.model}</h3>
-        <p className="text-gray-600 mb-4">{car.mileage.toLocaleString()} miles • {car.location}</p>
+        <p className="text-gray-600 mb-4">{car.mileage.toLocaleString()} km • {car.location}</p>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           <div className="flex items-center text-gray-700">
