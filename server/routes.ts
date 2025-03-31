@@ -586,6 +586,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Upload avatar image
+  app.post("/api/user/avatar", checkAuth, upload.single('avatar'), async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image uploaded" });
+      }
+      
+      // Set the image URL
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      // Update user with new avatar URL
+      const updatedUser = await storage.updateAvatar(req.user.id, imageUrl);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.status(200).json({ 
+        message: "Avatar updated successfully", 
+        avatarUrl: imageUrl 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Get phone verification status
   app.get("/api/user/verify-phone/status", checkAuth, async (req, res, next) => {
     try {

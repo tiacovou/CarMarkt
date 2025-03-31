@@ -134,7 +134,7 @@ export default function AuthPage() {
         });
         
         // Navigate to profile page after successful registration
-        navigate("/user/profile");
+        navigate("/profile");
       },
       onError: (error) => {
         toast({
