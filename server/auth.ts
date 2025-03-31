@@ -71,21 +71,59 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const existingUser = await storage.getUserByUsername(req.body.username);
+      // Verify that the request has the required verification info
+      const { phone, verificationCode, ...userData } = req.body;
+      
+      if (!phone || !verificationCode) {
+        return res.status(400).json({ 
+          message: "Phone verification is required to register an account" 
+        });
+      }
+      
+      // Verify that the phone number is not already in use
+      const existingUserWithPhone = await storage.getUserByPhone(phone);
+      if (existingUserWithPhone) {
+        return res.status(400).json({ 
+          message: "This phone number is already registered to another account" 
+        });
+      }
+
+      // Check the username and email
+      const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
       
-      const existingEmail = await storage.getUserByEmail(req.body.email);
+      const existingEmail = await storage.getUserByEmail(userData.email);
       if (existingEmail) {
         return res.status(400).json({ message: "Email already in use" });
       }
 
+      // Verify the code from temp storage
+      const tempCodes = app.locals.tempCodes || new Map();
+      const storedVerification = tempCodes.get(phone);
+      
+      if (!storedVerification || storedVerification.code !== verificationCode) {
+        return res.status(400).json({ message: "Invalid verification code" });
+      }
+      
+      // Check if the code has expired
+      if (storedVerification.expiresAt < new Date()) {
+        return res.status(400).json({ message: "Verification code has expired" });
+      }
+      
+      // Create the user with verified phone
       const user = await storage.createUser({
-        ...req.body,
-        password: await hashPassword(req.body.password),
+        ...userData,
+        phone,
+        phoneVerified: true, // Mark as already verified since we verified before registration
+        password: await hashPassword(userData.password),
       });
 
+      // Clean up the temporary verification code
+      tempCodes.delete(phone);
+      
+      // Log the user in
       req.login(user, (err) => {
         if (err) return next(err);
         

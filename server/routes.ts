@@ -566,6 +566,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Phone verification endpoints for registration (no auth required)
+  app.post("/api/verify-phone/request", async (req, res, next) => {
+    try {
+      // Validate phone number
+      const validatedData = phoneVerificationRequestSchema.parse(req.body);
+      
+      // Check if phone is already used by another user
+      const existingUserWithPhone = await storage.getUserByPhone(validatedData.phone);
+      if (existingUserWithPhone) {
+        return res.status(400).json({ 
+          message: "This phone number is already registered to another account" 
+        });
+      }
+      
+      // Generate a random 6-digit code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // In a real app, we would store this code in a temporary storage with the phone number
+      // and an expiration time. For simplicity in this demo, we're just storing it in memory.
+      const tempCodes = req.app.locals.tempCodes || new Map();
+      tempCodes.set(validatedData.phone, {
+        code,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiration
+      });
+      
+      req.app.locals.tempCodes = tempCodes;
+      
+      // Simulate SMS sending
+      console.log(`Sending verification code ${code} to ${validatedData.phone} for registration`);
+      
+      res.json({ 
+        message: "Verification code sent",
+        // For demo purposes only, this would be removed in production:
+        code: code 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Payment handling for user upgrade
   app.post("/api/user/upgrade", checkAuth, async (req, res, next) => {
     try {
