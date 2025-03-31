@@ -17,17 +17,20 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Car, Mail, User, Lock, UserPlus, LogIn, Loader2 } from "lucide-react";
+import { Car, Mail, User, Lock, UserPlus, LogIn, Loader2, ArrowRight, Phone } from "lucide-react";
 import { z } from "zod";
-import RegisterVerification from "@/components/auth/RegisterVerification";
-import { User as UserType } from "@shared/schema";
+import PreRegisterVerification from "@/components/auth/PreRegisterVerification";
+import { useToast } from "@/hooks/use-toast";
+
+type RegisterStep = "form" | "verification" | "complete";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation, registerMutation, isLoading } = useAuth();
-  const [registerStep, setRegisterStep] = useState<"form" | "verification">("form");
-  const [newUser, setNewUser] = useState<UserType | null>(null);
+  const [registerStep, setRegisterStep] = useState<RegisterStep>("form");
+  const [registerData, setRegisterData] = useState<any>(null);
   const [verificationCode, setVerificationCode] = useState<string | undefined>(undefined);
+  const { toast } = useToast();
   
   // Redirect to home if already logged in
   useEffect(() => {
@@ -62,39 +65,85 @@ export default function AuthPage() {
     loginMutation.mutate(values);
   };
   
-  // Handle register submission
+  // Handle register first step submission - collect data and proceed to verification
   const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
-    registerMutation.mutate(values, {
-      onSuccess: (user, variables) => {
-        // Start the verification process
-        setNewUser(user);
-        
-        // Request verification code
-        fetch("/api/user/verify-phone/request", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ phone: variables.phone })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.code) {
-            setVerificationCode(data.code);
-          }
-          setRegisterStep("verification");
-        })
-        .catch(err => {
-          console.error("Error sending verification code:", err);
-          // Continue anyway as the user is already registered
-          setRegisterStep("verification");
+    // Save the form data for later
+    setRegisterData(values);
+    
+    // Request verification code
+    fetch("/api/verify-phone/request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ phone: values.phone })
+    })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(data => {
+          throw new Error(data.message || "Failed to send verification code");
         });
       }
+      return res.json();
+    })
+    .then(data => {
+      if (data.code) {
+        setVerificationCode(data.code);
+        
+        // For demo purposes only
+        toast({
+          title: "Demo: Verification Code",
+          description: `Your verification code is: ${data.code}`,
+          variant: "default",
+        });
+      }
+      
+      // Move to verification step
+      setRegisterStep("verification");
+    })
+    .catch(err => {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     });
   };
   
-  const handleVerificationComplete = () => {
-    navigate("/");
+  // Handle going back to the form from verification
+  const handleBackToForm = () => {
+    setRegisterStep("form");
+  };
+  
+  // Handle verification completion and final registration
+  const handleVerificationComplete = (phone: string, code: string) => {
+    // Create the complete user data with verification info
+    const completeUserData = {
+      ...registerData,
+      phone,
+      verificationCode: code
+    };
+    
+    // Register the user with the verified phone
+    registerMutation.mutate(completeUserData, {
+      onSuccess: () => {
+        toast({
+          title: "Registration successful!",
+          description: "Your account has been created with a verified phone number.",
+          variant: "default",
+        });
+        
+        // Navigate to home page after successful registration
+        navigate("/");
+      },
+      onError: (error) => {
+        toast({
+          title: "Registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    });
   };
   
   if (isLoading) {
@@ -106,15 +155,17 @@ export default function AuthPage() {
   }
   
   // Show phone verification if we're in the verification step
-  if (registerStep === "verification" && newUser) {
+  if (registerStep === "verification" && registerData) {
     return (
       <>
         <Header />
         <main className="py-10 bg-gray-50 min-h-[calc(100vh-64px)]">
           <div className="container mx-auto px-4">
-            <RegisterVerification 
-              user={newUser} 
+            <PreRegisterVerification 
+              phone={registerData.phone}
               verificationCode={verificationCode}
+              registerData={registerData}
+              onBack={handleBackToForm}
               onVerificationComplete={handleVerificationComplete}
             />
           </div>
@@ -321,62 +372,10 @@ export default function AuthPage() {
             </div>
             
             {/* Right column - Hero content */}
-            <div className="bg-primary rounded-xl p-8 text-white hidden lg:block">
-              <div className="h-full flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center mb-6">
-                    <Car className="h-8 w-8 mr-2" />
-                    <h2 className="text-3xl font-bold">CarTrader</h2>
-                  </div>
-                  
-                  <h3 className="text-2xl font-semibold mb-4">Your destination for buying and selling cars</h3>
-                  <p className="mb-6">Join thousands of satisfied users who have found their perfect car or sold their vehicle quickly and easily.</p>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-white bg-opacity-20 p-2 rounded-full">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Easy Listings</h4>
-                        <p className="text-sm text-white/80">Create detailed car listings with photos in minutes</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-white bg-opacity-20 p-2 rounded-full">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Secure Messaging</h4>
-                        <p className="text-sm text-white/80">Communicate safely with buyers and sellers</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-white bg-opacity-20 p-2 rounded-full">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Advanced Search</h4>
-                        <p className="text-sm text-white/80">Find exactly what you're looking for with powerful filters</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-8">
-                  <p className="text-sm text-white/80 italic">
-                    "I sold my car in just 3 days on CarTrader. The process was so easy and I got a great price!"
-                    <br />— Michael S., CarTrader User
-                  </p>
-                </div>
+            <div className="bg-[#121c2c] rounded-xl p-8 text-white hidden lg:flex flex-col justify-center items-center">
+              <div className="text-center">
+                <h1 className="text-5xl font-bold leading-tight mb-6">Find Your Perfect Car in Cyprus</h1>
+                <p className="text-xl mb-4">Buy and sell vehicles with confidence on Cyprus' most trusted car marketplace</p>
               </div>
             </div>
           </div>
