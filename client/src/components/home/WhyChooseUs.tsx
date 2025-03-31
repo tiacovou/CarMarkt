@@ -9,8 +9,8 @@ export default function WhyChooseUs() {
     },
     {
       icon: <Users className="h-10 w-10 text-primary" />,
-      title: "Verified Users",
-      description: "Each seller on our platform undergoes a verification process to ensure trustworthiness."
+      title: "Phone-Verified Users",
+      description: "All users are verified through secure phone verification, ensuring authenticity and building trust within our community."
     },
     {
       icon: <Zap className="h-10 w-10 text-primary" />,

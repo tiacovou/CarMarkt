@@ -15,7 +15,7 @@ export default function Hero() {
       
       <div className="container mx-auto px-4 lg:px-6 py-32 md:py-40 lg:py-48 relative z-20">
         <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight min-h-[6rem]">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight h-[4.5rem] md:h-[5.5rem] lg:h-[6.5rem]">
             <TypeAnimation
               sequence={[
                 'Find Your Perfect Car in Cyprus',
@@ -27,6 +27,7 @@ export default function Hero() {
               ]}
               wrapper="span"
               speed={50}
+              style={{ display: 'inline-block' }}
               repeat={Infinity}
             />
           </h1>
