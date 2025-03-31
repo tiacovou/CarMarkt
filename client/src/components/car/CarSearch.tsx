@@ -279,6 +279,21 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
     return carModelsByMake[makeKey] || carModelsByMake["any"];
   }, [searchParams.make]);
   
+  // Get display values for the select fields
+  const getDisplayValue = (key: keyof CarSearchType): string => {
+    if (key === 'make' && !searchParams.make) return 'Any Make';
+    if (key === 'model' && !searchParams.model) return 'Any Model';
+    if (key === 'maxPrice' && !searchParams.maxPrice) return 'No Max Price';
+    if (key === 'minYear' && !searchParams.minYear) return 'Any Year';
+    
+    if (key === 'make') return searchParams.make;
+    if (key === 'model') return searchParams.model;
+    if (key === 'maxPrice') return `$${searchParams.maxPrice?.toLocaleString()}`;
+    if (key === 'minYear') return searchParams.minYear?.toString() || '';
+    
+    return '';
+  };
+  
   const handleChange = (key: keyof CarSearchType, value: string) => {
     if (key === "make") {
       // When make changes, reset model to empty string
@@ -348,8 +363,8 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
               value={searchParams.make} 
               onValueChange={(value) => handleChange("make", value)}
             >
-              <SelectTrigger id="make" className="w-full bg-white border-gray-300 h-11">
-                <SelectValue placeholder="Any Make" />
+              <SelectTrigger id="make" className="w-full bg-white border-gray-300 h-11 text-gray-700">
+                <div>{getDisplayValue('make')}</div>
               </SelectTrigger>
               <SelectContent>
                 {carBrands.map((brand) => (
@@ -368,8 +383,8 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
               value={searchParams.model} 
               onValueChange={(value) => handleChange("model", value)}
             >
-              <SelectTrigger id="model" className="w-full bg-white border-gray-300 h-11">
-                <SelectValue placeholder="Any Model" />
+              <SelectTrigger id="model" className="w-full bg-white border-gray-300 h-11 text-gray-700">
+                <div>{getDisplayValue('model')}</div>
               </SelectTrigger>
               <SelectContent>
                 {currentModels.map((model) => (
@@ -388,8 +403,8 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
               value={searchParams.maxPrice?.toString() || "any"} 
               onValueChange={(value) => handleChange("maxPrice", value)}
             >
-              <SelectTrigger id="price" className="w-full bg-white border-gray-300 h-11">
-                <SelectValue placeholder="No Max Price" />
+              <SelectTrigger id="price" className="w-full bg-white border-gray-300 h-11 text-gray-700">
+                <div>{getDisplayValue('maxPrice')}</div>
               </SelectTrigger>
               <SelectContent>
                 {priceRanges.map((range) => (
@@ -408,8 +423,8 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
               value={searchParams.minYear?.toString() || "any"} 
               onValueChange={(value) => handleChange("minYear", value)}
             >
-              <SelectTrigger id="year" className="w-full bg-white border-gray-300 h-11">
-                <SelectValue placeholder="Any Year" />
+              <SelectTrigger id="year" className="w-full bg-white border-gray-300 h-11 text-gray-700">
+                <div>{getDisplayValue('minYear')}</div>
               </SelectTrigger>
               <SelectContent>
                 {yearRanges.map((range) => (
