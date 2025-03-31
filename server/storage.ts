@@ -21,6 +21,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   updateAvatar(userId: number, avatarUrl: string): Promise<User | undefined>;
+  updateStripeCustomerId(id: number, stripeCustomerId: string): Promise<User | undefined>;
+  updateUserStripeInfo(id: number, stripeInfo: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User | undefined>;
   createVerificationCode(userId: number, phone: string): Promise<string>;
   verifyPhone(userId: number, code: string): Promise<boolean>;
   
@@ -131,8 +133,11 @@ export class MemStorage implements IStorage {
       isPremium: false,
       freeListingsUsed: 0,
       phoneVerified: false,
+      phone: insertUser.phone || null,
       verificationCode: null,
-      verificationCodeExpires: null
+      verificationCodeExpires: null,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null
     };
     this.users.set(id, user);
     return user;
@@ -154,6 +159,14 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...existingUser, avatarUrl };
     this.users.set(userId, updatedUser);
     return updatedUser;
+  }
+  
+  async updateStripeCustomerId(id: number, stripeCustomerId: string): Promise<User | undefined> {
+    return this.updateUser(id, { stripeCustomerId });
+  }
+  
+  async updateUserStripeInfo(id: number, stripeInfo: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User | undefined> {
+    return this.updateUser(id, stripeInfo);
   }
   
   async createVerificationCode(userId: number, phone: string): Promise<string> {
@@ -240,7 +253,17 @@ export class MemStorage implements IStorage {
   async createCar(car: InsertCar, userId: number): Promise<Car> {
     const id = this.currentCarId++;
     const createdAt = new Date();
-    const newCar: Car = { ...car, id, userId, isActive: true, createdAt };
+    const newCar: Car = { 
+      ...car, 
+      id, 
+      userId, 
+      isActive: true, 
+      createdAt,
+      fuelType: car.fuelType || null,
+      transmission: car.transmission || null,
+      color: car.color || null,
+      description: car.description || null 
+    };
     this.cars.set(id, newCar);
     return newCar;
   }
@@ -271,7 +294,11 @@ export class MemStorage implements IStorage {
   
   async createCarImage(image: InsertCarImage): Promise<CarImage> {
     const id = this.currentCarImageId++;
-    const newImage: CarImage = { ...image, id };
+    const newImage: CarImage = { 
+      ...image, 
+      id,
+      isPrimary: image.isPrimary || false
+    };
     this.carImages.set(id, newImage);
     return newImage;
   }
@@ -345,10 +372,17 @@ export class MemStorage implements IStorage {
   }
   
   // Payment operations
-  async createPayment(payment: InsertPayment): Promise<Payment> {
+  async createPayment(payment: any): Promise<Payment> {
     const id = this.currentPaymentId++;
     const createdAt = new Date();
-    const newPayment: Payment = { ...payment, id, createdAt };
+    const newPayment: Payment = { 
+      ...payment, 
+      id, 
+      createdAt,
+      status: payment.status || 'pending',
+      stripePaymentIntentId: payment.stripePaymentIntentId || null,
+      stripeSubscriptionId: payment.stripeSubscriptionId || null
+    };
     this.payments.set(id, newPayment);
     return newPayment;
   }

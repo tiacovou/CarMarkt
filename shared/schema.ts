@@ -16,6 +16,8 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   isPremium: boolean("is_premium").default(false).notNull(),
   freeListingsUsed: integer("free_listings_used").default(0).notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -27,6 +29,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   phoneVerified: true,
   verificationCode: true,
   verificationCodeExpires: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
 });
 
 // Car condition enum
@@ -149,12 +153,16 @@ export const payments = pgTable("payments", {
   amount: integer("amount").notNull(), // Amount in cents (€)
   description: text("description").notNull(),
   status: text("status").notNull().default("pending"), // pending, completed, failed
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertPaymentSchema = createInsertSchema(payments).omit({
   id: true,
   createdAt: true,
+  stripePaymentIntentId: true,
+  stripeSubscriptionId: true,
 });
 
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
