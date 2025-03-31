@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   phoneVerified: boolean("phone_verified").default(false).notNull(),
   verificationCode: text("verification_code"),
   verificationCodeExpires: timestamp("verification_code_expires"),
+  avatarUrl: text("avatar_url"),
   isPremium: boolean("is_premium").default(false).notNull(),
   freeListingsUsed: integer("free_listings_used").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),

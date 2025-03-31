@@ -133,6 +133,47 @@ export default function UserProfile() {
     }
   });
   
+  // Avatar upload mutation
+  const avatarUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      const res = await fetch('/api/user/avatar', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Error uploading avatar');
+      }
+      
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been updated",
+        variant: "default",
+      });
+      
+      // Update the user data in the cache
+      queryClient.setQueryData(["/api/user"], (oldData: any) => ({
+        ...oldData,
+        avatarUrl: data.avatarUrl
+      }));
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error uploading avatar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Password change mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (data: PasswordChangeFormValues) => {
@@ -161,6 +202,33 @@ export default function UserProfile() {
     }
   });
   
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file size and type
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "File too large",
+        description: "The image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Upload the avatar
+    avatarUploadMutation.mutate(file);
+  };
+
   const handlePasswordSubmit = (data: PasswordChangeFormValues) => {
     changePasswordMutation.mutate(data);
   };
@@ -215,11 +283,32 @@ export default function UserProfile() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <Card className="md:col-span-1">
                   <CardContent className="pt-6 flex flex-col items-center">
-                    <Avatar className="h-24 w-24 mb-4">
-                      <AvatarFallback className="text-xl bg-primary text-white">
-                        {user.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative group">
+                      <Avatar className="h-24 w-24 mb-4">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="text-xl bg-primary text-white">
+                            {user.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="absolute bottom-3 right-0 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => document.getElementById('avatar-upload')?.click()}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <input 
+                        type="file"
+                        id="avatar-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                      />
+                    </div>
                     
                     <h3 className="text-xl font-semibold mb-1">{user.name}</h3>
                     <p className="text-gray-500 text-sm mb-4">Member since {new Date().toLocaleDateString()}</p>

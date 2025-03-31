@@ -20,6 +20,7 @@ export interface IStorage {
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  updateAvatar(userId: number, avatarUrl: string): Promise<User | undefined>;
   createVerificationCode(userId: number, phone: string): Promise<string>;
   verifyPhone(userId: number, code: string): Promise<boolean>;
   
@@ -143,6 +144,15 @@ export class MemStorage implements IStorage {
     
     const updatedUser = { ...existingUser, ...userData };
     this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateAvatar(userId: number, avatarUrl: string): Promise<User | undefined> {
+    const existingUser = this.users.get(userId);
+    if (!existingUser) return undefined;
+    
+    const updatedUser = { ...existingUser, avatarUrl };
+    this.users.set(userId, updatedUser);
     return updatedUser;
   }
   
