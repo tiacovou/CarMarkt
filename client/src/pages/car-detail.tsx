@@ -11,6 +11,9 @@ export default function CarDetailPage() {
   const carId = parseInt(id);
   
   useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo(0, 0);
+    
     // Simulate loading state
     const timer = setTimeout(() => {
       setLoading(false);

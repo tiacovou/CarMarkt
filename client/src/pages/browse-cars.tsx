@@ -22,6 +22,11 @@ export default function BrowseCars() {
   const [searchParams, setSearchParams] = useState<URLSearchParams>(new URLSearchParams(location.split("?")[1] || ""));
   const [sortBy, setSortBy] = useState<string>("newest");
   
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   // Create search object from URL params
   const searchObject: CarSearchType = {
     make: searchParams.get("make") || "",
