@@ -1,4 +1,5 @@
 import CarSearch from "@/components/car/CarSearch";
+import { TypeAnimation } from 'react-type-animation';
 
 export default function Hero() {
   return (
@@ -14,7 +15,21 @@ export default function Hero() {
       
       <div className="container mx-auto px-4 lg:px-6 py-32 md:py-40 lg:py-48 relative z-20">
         <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">Find Your Perfect Car in Cyprus</h1>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight min-h-[6rem]">
+            <TypeAnimation
+              sequence={[
+                'Find Your Perfect Car in Cyprus',
+                1000,
+                'Find Your Dream Vehicle in Cyprus',
+                1000,
+                'Find Your Ideal Auto in Cyprus',
+                1000,
+              ]}
+              wrapper="span"
+              speed={50}
+              repeat={Infinity}
+            />
+          </h1>
           <p className="text-xl md:text-2xl mb-16 opacity-90 max-w-2xl mx-auto">Buy and sell vehicles with confidence on Cyprus' most trusted car marketplace</p>
         </div>
         
