@@ -7,13 +7,15 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 import { randomUUID } from "crypto";
+import Stripe from "stripe";
 import { 
   insertCarSchema, 
   insertMessageSchema, 
   insertPaymentSchema,
   carSearchSchema,
   phoneVerificationRequestSchema,
-  phoneVerificationConfirmSchema
+  phoneVerificationConfirmSchema,
+  User
 } from "@shared/schema";
 
 // Set up multer for file storage
@@ -638,12 +640,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Update user profile
-      const updatedUser = await storage.updateUser(req.user.id, { 
+      // Prepare update data
+      const updateData: Partial<User> = { 
         name,
         email: email || req.user.email,
         phone: phone === "" ? null : phone
-      });
+      };
+      
+      // If phone number is changed, set phoneVerified to false
+      if (phone && phone !== req.user.phone) {
+        updateData.phoneVerified = false;
+        updateData.verificationCode = null;
+        updateData.verificationCodeExpires = null;
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(req.user.id, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
@@ -741,6 +753,232 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Integration with Stripe for payments
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn("Missing STRIPE_SECRET_KEY environment variable. Stripe payment functionality will be disabled.");
+  } else {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-02-24.acacia",
+    });
+    
+    // Create a payment intent for one-time premium listing fee
+    app.post("/api/create-payment-intent", checkAuth, async (req, res, next) => {
+      try {
+        const { amount, description = "Additional Listing" } = req.body;
+        
+        if (!amount || amount <= 0) {
+          return res.status(400).json({ message: "Invalid payment amount" });
+        }
+        
+        // Create a PaymentIntent with the order amount and currency
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(amount * 100), // Convert to cents
+          currency: "eur",
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+        
+        // Create payment record
+        await storage.createPayment({
+          userId: req.user.id,
+          amount: amount,
+          description: description,
+          status: "pending",
+          stripePaymentIntentId: paymentIntent.id
+        });
+        
+        res.json({
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    // Create a subscription for premium membership
+    app.post("/api/create-subscription", checkAuth, async (req, res, next) => {
+      try {
+        const user = await storage.getUser(req.user.id);
+        
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Check if customer already exists
+        let customerId = user.stripeCustomerId;
+        
+        if (!customerId) {
+          // Create a new customer
+          const customer = await stripe.customers.create({
+            email: user.email,
+            name: user.name,
+          });
+          
+          customerId = customer.id;
+          
+          // Update user with customer ID
+          await storage.updateUser(user.id, { stripeCustomerId: customerId });
+        }
+        
+        // Create the subscription
+        const subscription = await stripe.subscriptions.create({
+          customer: customerId,
+          items: [
+            { price: 'price_1PghnFC7gnJbSTEaXlc3UGGw' }, // Hard-coded for now, use a config in production
+          ],
+          payment_behavior: 'default_incomplete',
+          payment_settings: { save_default_payment_method: 'on_subscription' },
+          expand: ['latest_invoice.payment_intent'],
+        });
+        
+        // Get the client secret from the latest invoice
+        const invoice = subscription.latest_invoice as Stripe.Invoice;
+        const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+        
+        // Create local payment record
+        await storage.createPayment({
+          userId: user.id,
+          amount: 5.00,
+          description: "Premium Subscription",
+          status: "pending",
+          stripePaymentIntentId: paymentIntent.id,
+          stripeSubscriptionId: subscription.id
+        });
+        
+        // Return the subscription and client secret
+        res.json({
+          subscriptionId: subscription.id,
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (error) {
+        next(error);
+      }
+    });
+    
+    // Webhook endpoint to handle Stripe events
+    app.post("/api/stripe-webhook", express.raw({type: 'application/json'}), async (req, res) => {
+      const sig = req.headers['stripe-signature'];
+      
+      if (!sig) {
+        return res.status(400).send('Webhook Error: No Stripe signature header');
+      }
+      
+      let event;
+      
+      try {
+        // This would use a webhook secret in production
+        // event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        event = stripe.webhooks.constructEvent(req.body, sig, 'whsec_12345'); // Replace with actual secret
+      } catch (err: any) {
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+      }
+      
+      // Handle the event
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          console.log('PaymentIntent succeeded:', paymentIntent.id);
+          
+          try {
+            // Get all payments
+            const payments = Array.from((storage as any).payments.values());
+            
+            // Find payment by Stripe payment intent ID
+            const payment = payments.find((p: any) => p.stripePaymentIntentId === paymentIntent.id);
+            
+            if (payment) {
+              // Update payment status
+              await storage.updatePaymentStatus(payment.id, "completed");
+              
+              // If this was a one-time payment for an additional listing
+              if (payment.description.includes("Additional Listing")) {
+                const user = await storage.getUser(payment.userId);
+                if (user) {
+                  // No need to update anything as they've already paid for the specific listing
+                  console.log(`User ${user.id} paid for an additional listing`);
+                }
+              }
+            }
+          } catch (err) {
+            console.error('Error processing payment_intent.succeeded:', err);
+          }
+          
+          break;
+          
+        case 'invoice.payment_succeeded':
+          const invoice = event.data.object as Stripe.Invoice;
+          console.log('Invoice payment succeeded:', invoice.id);
+          
+          try {
+            // Handle subscription payment success
+            if (invoice.subscription) {
+              // Find the subscription in Stripe
+              const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+              
+              // Get all payments
+              const payments = Array.from((storage as any).payments.values());
+              
+              // Find any pending payments for this subscription
+              const pendingPayment = payments.find((p: any) => 
+                p.status === "pending" && 
+                p.description.includes("Premium Subscription")
+              );
+              
+              if (pendingPayment) {
+                // Update payment status
+                await storage.updatePaymentStatus(pendingPayment.id, "completed");
+                
+                // Update user subscription information
+                const user = await storage.getUser(pendingPayment.userId);
+                if (user) {
+                  await storage.updateUser(user.id, { 
+                    isPremium: true,
+                    stripeSubscriptionId: subscription.id
+                  });
+                  console.log(`User ${user.id} upgraded to premium subscription`);
+                }
+              }
+            }
+          } catch (err) {
+            console.error('Error processing invoice.payment_succeeded:', err);
+          }
+          
+          break;
+          
+        case 'customer.subscription.deleted':
+          const subscription = event.data.object as Stripe.Subscription;
+          console.log('Subscription canceled:', subscription.id);
+          
+          try {
+            // Find user by subscription ID
+            // Loop through all users
+            const users = Array.from((storage as any).users.values());
+            const user = users.find((u: any) => u.stripeSubscriptionId === subscription.id);
+            
+            if (user) {
+              // Update user to remove premium status
+              await storage.updateUser(user.id, {
+                isPremium: false,
+                stripeSubscriptionId: null
+              });
+              console.log(`User ${user.id} subscription canceled, premium status removed`);
+            }
+          } catch (err) {
+            console.error('Error processing customer.subscription.deleted:', err);
+          }
+          
+          break;
+          
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+      }
+      
+      // Return a 200 response to acknowledge receipt of the event
+      res.send();
+    });
+  }
 
   const httpServer = createServer(app);
   return httpServer;

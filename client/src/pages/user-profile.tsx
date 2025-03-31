@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PhoneVerification from "@/components/user/PhoneVerification";
+import SubscriptionForm from "@/components/subscribe/SubscriptionForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useLocation } from "wouter";
 import {
   Form,
   FormControl,
@@ -243,7 +245,7 @@ export default function UserProfile() {
       const res = await apiRequest("PATCH", "/api/user/profile", data);
       return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully",
@@ -255,6 +257,29 @@ export default function UserProfile() {
         ...oldData,
         ...data.user
       }));
+      
+      // Check if phone number was changed
+      const currentUser = queryClient.getQueryData<typeof User>(["/api/user"]);
+      if (variables.phone && currentUser && variables.phone !== currentUser.phone) {
+        // Invalidate the verification status
+        queryClient.invalidateQueries({queryKey: ["/api/user/verify-phone/status"]});
+        
+        // Show toast notification about verification
+        toast({
+          title: "Phone number updated",
+          description: "Please verify your new phone number in the Phone Verification section below",
+          variant: "destructive",
+          duration: 10000,
+        });
+        
+        // Scroll to verification section after a brief delay
+        setTimeout(() => {
+          const verificationSection = document.getElementById("phone-verification-section");
+          if (verificationSection) {
+            verificationSection.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 500);
+      }
       
       // Reset edit mode
       setEditMode(null);
@@ -529,7 +554,7 @@ export default function UserProfile() {
                     </div>
                     
                     {/* Phone Verification */}
-                    <div className="pt-4">
+                    <div className="pt-4" id="phone-verification-section">
                       <h3 className="text-lg font-medium mb-2">Phone Verification</h3>
                       <PhoneVerification />
                     </div>
@@ -700,6 +725,147 @@ export default function UserProfile() {
                 <h2 className="text-xl font-semibold">Messages</h2>
               </div>
               
+            </TabsContent>
+            
+            {/* Payments & Subscription Tab */}
+            <TabsContent value="payments">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Payments & Subscription</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Subscription Status Card */}
+                <Card className="md:col-span-1">
+                  <CardHeader>
+                    <CardTitle>Subscription Status</CardTitle>
+                    <CardDescription>Your current plan and benefits</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {user.isPremium ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-green-500">Active</Badge>
+                          <span className="font-medium">Premium Plan</span>
+                        </div>
+                        
+                        <div className="rounded-lg border bg-card p-4">
+                          <h3 className="font-medium mb-2">Your Benefits:</h3>
+                          <ul className="space-y-2">
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span>Unlimited car listings</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span>Priority customer support</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span>No per-listing fees</span>
+                            </li>
+                          </ul>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <p className="text-sm text-muted-foreground mb-4">Your subscription automatically renews at €5.00/month.</p>
+                          <Button variant="outline" className="w-full">
+                            Manage Subscription
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline">Free Plan</Badge>
+                          <span className="font-medium">Basic Account</span>
+                        </div>
+                        
+                        <div className="rounded-lg border bg-card p-4">
+                          <h3 className="font-medium mb-2">Current Limitations:</h3>
+                          <ul className="space-y-2">
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span>5 free car listings</span>
+                            </li>
+                            <li className="flex items-center">
+                              <X className="h-4 w-4 mr-2 text-red-500" />
+                              <span>€1 fee per additional listing</span>
+                            </li>
+                            <li className="flex items-center">
+                              <X className="h-4 w-4 mr-2 text-red-500" />
+                              <span>Standard support</span>
+                            </li>
+                          </ul>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <p className="text-sm text-muted-foreground">Upgrade to Premium for unlimited listings!</p>
+                          <SubscriptionForm />
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Payment History Card */}
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Payment History</CardTitle>
+                    <CardDescription>Recent transactions and payments</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingPayments ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : payments && payments.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-3 px-4 font-medium">Date</th>
+                              <th className="text-left py-3 px-4 font-medium">Description</th>
+                              <th className="text-right py-3 px-4 font-medium">Amount</th>
+                              <th className="text-right py-3 px-4 font-medium">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {payments.map(payment => (
+                              <tr key={payment.id} className="border-b">
+                                <td className="py-3 px-4 text-sm">
+                                  {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="py-3 px-4 text-sm">
+                                  {payment.description}
+                                </td>
+                                <td className="py-3 px-4 text-sm text-right">
+                                  €{(payment.amount).toFixed(2)}
+                                </td>
+                                <td className="py-3 px-4 text-sm text-right">
+                                  <Badge 
+                                    variant={payment.status === 'completed' ? 'default' : 
+                                            payment.status === 'pending' ? 'outline' : 'destructive'}
+                                    className="capitalize"
+                                  >
+                                    {payment.status}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <h3 className="text-lg font-medium mb-1">No Payment History</h3>
+                        <p className="text-gray-500">You haven't made any payments yet</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+              
               {isLoadingMessages ? (
                 <div className="flex justify-center items-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -727,7 +893,7 @@ export default function UserProfile() {
                                 )}
                               </div>
                               <p className="text-gray-600 text-sm mt-1 mb-2">
-                                {typeof message.createdAt === 'string' ? new Date(message.createdAt).toLocaleString() : 'Just now'}
+                                {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
                               </p>
                               <p className="text-gray-800">{message.content}</p>
                             </div>
@@ -789,7 +955,7 @@ export default function UserProfile() {
                               </Badge>
                             </div>
                             <p className="text-gray-600 text-sm">
-                              {typeof payment.createdAt === 'string' ? new Date(payment.createdAt).toLocaleString() : 'Just now'}
+                              {payment.createdAt ? new Date(payment.createdAt).toLocaleString() : 'Just now'}
                             </p>
                           </div>
                           <div className="text-right">
