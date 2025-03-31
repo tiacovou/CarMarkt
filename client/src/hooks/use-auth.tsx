@@ -31,6 +31,13 @@ const registerSchema = insertUserSchema.extend({
   password: z.string().min(6, "Password must be at least 6 characters"),
   email: z.string().email("Please enter a valid email"),
   name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string()
+    .min(8, "Phone number is too short")
+    .max(15, "Phone number is too long")
+    .regex(/^\+?[0-9]+$/, "Please enter a valid phone number")
+    .refine((phone) => phone.startsWith("+357") || phone.startsWith("00357"), {
+      message: "Phone number must be in Cyprus format (+357 or 00357 followed by your mobile number)"
+    }),
 });
 
 type RegisterData = z.infer<typeof registerSchema>;

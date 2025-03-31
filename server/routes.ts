@@ -547,6 +547,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get phone verification status
+  app.get("/api/user/verify-phone/status", checkAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({
+        phone: user.phone,
+        verified: user.phoneVerified,
+        hasPhone: !!user.phone
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Payment handling for user upgrade
   app.post("/api/user/upgrade", checkAuth, async (req, res, next) => {
     try {
