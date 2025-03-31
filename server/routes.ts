@@ -612,6 +612,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update user profile information
+  app.patch("/api/user/profile", checkAuth, async (req, res, next) => {
+    try {
+      const { name, email, phone } = req.body;
+      
+      // Validate required fields
+      if (!name) {
+        return res.status(400).json({ message: "Name is required" });
+      }
+      
+      // Check if email already exists (if changing)
+      if (email && email !== req.user.email) {
+        const existingUserWithEmail = await storage.getUserByEmail(email);
+        if (existingUserWithEmail && existingUserWithEmail.id !== req.user.id) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+      
+      // Check if phone already exists (if changing and not null)
+      if (phone && phone !== req.user.phone) {
+        const existingUserWithPhone = await storage.getUserByPhone(phone);
+        if (existingUserWithPhone && existingUserWithPhone.id !== req.user.id) {
+          return res.status(400).json({ message: "Phone number already in use" });
+        }
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(req.user.id, { 
+        name,
+        email: email || req.user.email,
+        phone: phone === "" ? null : phone
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.status(200).json({ 
+        message: "Profile updated successfully",
+        user: updatedUser
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Get phone verification status
   app.get("/api/user/verify-phone/status", checkAuth, async (req, res, next) => {
     try {

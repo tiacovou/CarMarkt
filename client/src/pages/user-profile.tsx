@@ -31,7 +31,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import CarCard from "@/components/car/CarCard";
-import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock } from "lucide-react";
+import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X } from "lucide-react";
 import { Link } from "wouter";
 import { Car as CarType, Favorite, Message, Payment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -53,6 +53,10 @@ export default function UserProfile() {
   const { user, logoutMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState<'name' | 'email' | 'phone' | null>(null);
+  const [editedName, setEditedName] = useState('');
+  const [editedEmail, setEditedEmail] = useState('');
+  const [editedPhone, setEditedPhone] = useState('');
   const { toast } = useToast();
   
   // Fetch user's cars
@@ -233,6 +237,71 @@ export default function UserProfile() {
     changePasswordMutation.mutate(data);
   };
   
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: { name?: string; email?: string; phone?: string }) => {
+      const res = await apiRequest("PATCH", "/api/user/profile", data);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+        variant: "default",
+      });
+      
+      // Update the user data in the cache
+      queryClient.setQueryData(["/api/user"], (oldData: any) => ({
+        ...oldData,
+        ...data.user
+      }));
+      
+      // Reset edit mode
+      setEditMode(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Start editing a field
+  const startEdit = (field: 'name' | 'email' | 'phone') => {
+    // Initialize the field with current value
+    if (field === 'name') {
+      setEditedName(user.name);
+    } else if (field === 'email') {
+      setEditedEmail(user.email);
+    } else if (field === 'phone') {
+      setEditedPhone(user.phone || '');
+    }
+    
+    setEditMode(field);
+  };
+  
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditMode(null);
+  };
+  
+  // Save changes
+  const handleSaveChanges = () => {
+    const data: any = {};
+    
+    if (editMode === 'name') {
+      data.name = editedName;
+    } else if (editMode === 'email') {
+      data.email = editedEmail;
+    } else if (editMode === 'phone') {
+      data.phone = editedPhone;
+    }
+    
+    updateProfileMutation.mutate(data);
+  };
+  
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -354,10 +423,31 @@ export default function UserProfile() {
                       <div>
                         <label className="text-sm font-medium mb-1 block">Full Name</label>
                         <div className="flex items-center">
-                          <Input value={user.name} disabled className="bg-gray-50" />
-                          <Button variant="ghost" size="icon" className="ml-2">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Input 
+                            value={editMode === 'name' ? editedName : user.name} 
+                            disabled={editMode !== 'name'} 
+                            className={editMode !== 'name' ? "bg-gray-50" : ""} 
+                            onChange={(e) => setEditedName(e.target.value)}
+                          />
+                          {editMode === 'name' ? (
+                            <div className="flex gap-2 ml-2">
+                              <Button 
+                                size="icon" 
+                                variant="outline" 
+                                onClick={handleSaveChanges}
+                                disabled={updateProfileMutation.isPending}
+                              >
+                                {updateProfileMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={cancelEdit}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button variant="ghost" size="icon" className="ml-2" onClick={() => startEdit('name')}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       
@@ -369,20 +459,64 @@ export default function UserProfile() {
                       <div>
                         <label className="text-sm font-medium mb-1 block">Email</label>
                         <div className="flex items-center">
-                          <Input value={user.email} disabled className="bg-gray-50" />
-                          <Button variant="ghost" size="icon" className="ml-2">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Input 
+                            value={editMode === 'email' ? editedEmail : user.email} 
+                            disabled={editMode !== 'email'} 
+                            className={editMode !== 'email' ? "bg-gray-50" : ""} 
+                            onChange={(e) => setEditedEmail(e.target.value)}
+                            type="email"
+                          />
+                          {editMode === 'email' ? (
+                            <div className="flex gap-2 ml-2">
+                              <Button 
+                                size="icon" 
+                                variant="outline" 
+                                onClick={handleSaveChanges}
+                                disabled={updateProfileMutation.isPending}
+                              >
+                                {updateProfileMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={cancelEdit}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button variant="ghost" size="icon" className="ml-2" onClick={() => startEdit('email')}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       
                       <div>
                         <label className="text-sm font-medium mb-1 block">Phone</label>
                         <div className="flex items-center">
-                          <Input value={user.phone || "Not provided"} disabled className="bg-gray-50" />
-                          <Button variant="ghost" size="icon" className="ml-2">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Input 
+                            value={editMode === 'phone' ? editedPhone : (user.phone || "Not provided")} 
+                            disabled={editMode !== 'phone'} 
+                            className={editMode !== 'phone' ? "bg-gray-50" : ""} 
+                            onChange={(e) => setEditedPhone(e.target.value)}
+                            placeholder="+35712345678"
+                          />
+                          {editMode === 'phone' ? (
+                            <div className="flex gap-2 ml-2">
+                              <Button 
+                                size="icon" 
+                                variant="outline" 
+                                onClick={handleSaveChanges}
+                                disabled={updateProfileMutation.isPending}
+                              >
+                                {updateProfileMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={cancelEdit}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button variant="ghost" size="icon" className="ml-2" onClick={() => startEdit('phone')}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
