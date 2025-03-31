@@ -270,6 +270,8 @@ export default function UserProfile() {
   
   // Start editing a field
   const startEdit = (field: 'name' | 'email' | 'phone') => {
+    if (!user) return;
+    
     // Initialize the field with current value
     if (field === 'name') {
       setEditedName(user.name);
@@ -289,7 +291,12 @@ export default function UserProfile() {
   
   // Save changes
   const handleSaveChanges = () => {
-    const data: any = {};
+    if (!user) return;
+    
+    const data: any = {
+      // Always include name to satisfy the backend requirement
+      name: user.name
+    };
     
     if (editMode === 'name') {
       data.name = editedName;
