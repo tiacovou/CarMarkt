@@ -8,7 +8,6 @@ import HowItWorks from "@/components/home/HowItWorks";
 import SellYourCar from "@/components/home/SellYourCar";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import FeaturedMakes from "@/components/home/FeaturedMakes";
-import Statistics from "@/components/home/Statistics";
 import CarSearch from "@/components/car/CarSearch";
 import CarCard from "@/components/car/CarCard";
 import { Button } from "@/components/ui/button";
@@ -40,20 +39,9 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <CarSearch />
         
-        <WhyChooseUs />
-        
-        <FeaturedMakes />
-        
-        <HowItWorks />
-        
-        <Statistics />
-        
-        <SellYourCar />
-        
-        {/* Recent Listings */}
-        <section className="py-12 lg:py-20 bg-gray-50">
+        {/* Recent Listings - now right below Hero */}
+        <section className="pt-20 pb-12 lg:pt-24 lg:pb-20 bg-gray-50">
           <div className="container mx-auto px-4 lg:px-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 lg:mb-12">
               <div>
@@ -92,6 +80,14 @@ export default function HomePage() {
             )}
           </div>
         </section>
+        
+        <WhyChooseUs />
+        
+        <FeaturedMakes />
+        
+        <HowItWorks />
+        
+        <SellYourCar />
       </main>
       <Footer />
     </>
