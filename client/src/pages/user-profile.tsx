@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import PhoneVerification from "@/components/user/PhoneVerification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -295,6 +296,12 @@ export default function UserProfile() {
                           </Button>
                         </div>
                       </div>
+                    </div>
+                    
+                    {/* Phone Verification */}
+                    <div className="pt-4">
+                      <h3 className="text-lg font-medium mb-2">Phone Verification</h3>
+                      <PhoneVerification />
                     </div>
                     
                     <div className="pt-4">

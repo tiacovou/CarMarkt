@@ -17,8 +17,11 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  createVerificationCode(userId: number, phone: string): Promise<string>;
+  verifyPhone(userId: number, code: string): Promise<boolean>;
   
   // Car operations
   getCar(id: number): Promise<Car | undefined>;
@@ -110,6 +113,12 @@ export class MemStorage implements IStorage {
       (user) => user.email === email,
     );
   }
+  
+  async getUserByPhone(phone: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.phone === phone,
+    );
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
@@ -119,7 +128,10 @@ export class MemStorage implements IStorage {
       id, 
       createdAt,
       isPremium: false,
-      freeListingsUsed: 0
+      freeListingsUsed: 0,
+      phoneVerified: false,
+      verificationCode: null,
+      verificationCodeExpires: null
     };
     this.users.set(id, user);
     return user;
@@ -132,6 +144,60 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...existingUser, ...userData };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+  
+  async createVerificationCode(userId: number, phone: string): Promise<string> {
+    // Generate a random 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Code expires in 10 minutes
+    
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+    
+    // Update user with verification data
+    await this.updateUser(userId, {
+      phone,
+      phoneVerified: false,
+      verificationCode: code,
+      verificationCodeExpires: expiresAt
+    });
+    
+    return code;
+  }
+  
+  async verifyPhone(userId: number, code: string): Promise<boolean> {
+    const user = await this.getUser(userId);
+    if (!user) return false;
+    
+    // Check if verification code exists and is not expired
+    if (!user.verificationCode || !user.verificationCodeExpires) {
+      return false;
+    }
+    
+    const now = new Date();
+    if (now > user.verificationCodeExpires) {
+      // Code has expired
+      await this.updateUser(userId, {
+        verificationCode: null,
+        verificationCodeExpires: null
+      });
+      return false;
+    }
+    
+    // Check if codes match
+    if (user.verificationCode !== code) {
+      return false;
+    }
+    
+    // Code is valid, mark the phone as verified
+    await this.updateUser(userId, {
+      phoneVerified: true,
+      verificationCode: null,
+      verificationCodeExpires: null
+    });
+    
+    return true;
   }
 
   // Car operations

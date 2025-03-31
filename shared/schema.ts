@@ -10,6 +10,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   phone: text("phone"),
+  phoneVerified: boolean("phone_verified").default(false).notNull(),
+  verificationCode: text("verification_code"),
+  verificationCodeExpires: timestamp("verification_code_expires"),
   isPremium: boolean("is_premium").default(false).notNull(),
   freeListingsUsed: integer("free_listings_used").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -20,6 +23,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   isPremium: true,
   freeListingsUsed: true,
+  phoneVerified: true,
+  verificationCode: true,
+  verificationCodeExpires: true,
 });
 
 // Car condition enum
@@ -118,6 +124,22 @@ export const carSearchSchema = z.object({
 });
 
 export type CarSearch = z.infer<typeof carSearchSchema>;
+
+// Phone verification schemas
+export const phoneVerificationRequestSchema = z.object({
+  phone: z.string()
+    .min(8, "Phone number is too short")
+    .max(15, "Phone number is too long")
+    .regex(/^\+?[0-9]+$/, "Please enter a valid phone number"),
+});
+
+export const phoneVerificationConfirmSchema = z.object({
+  phone: z.string().min(1, "Phone number is required"),
+  code: z.string().min(4, "Verification code is required").max(6, "Invalid verification code"),
+});
+
+export type PhoneVerificationRequest = z.infer<typeof phoneVerificationRequestSchema>;
+export type PhoneVerificationConfirm = z.infer<typeof phoneVerificationConfirmSchema>;
 
 // Payment schema
 export const payments = pgTable("payments", {

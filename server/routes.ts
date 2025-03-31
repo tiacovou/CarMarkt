@@ -11,7 +11,9 @@ import {
   insertCarSchema, 
   insertMessageSchema, 
   insertPaymentSchema,
-  carSearchSchema
+  carSearchSchema,
+  phoneVerificationRequestSchema,
+  phoneVerificationConfirmSchema
 } from "@shared/schema";
 
 // Set up multer for file storage
@@ -470,6 +472,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const payments = await storage.getPaymentsByUser(req.user.id);
       res.json(payments);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Phone verification routes
+  app.get("/api/user/verify-phone/status", checkAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      
+      res.json({
+        phone: user?.phone || null,
+        verified: user?.phoneVerified || false,
+        hasPhone: !!user?.phone
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/user/verify-phone/request", checkAuth, async (req, res, next) => {
+    try {
+      // Validate phone number
+      const validatedData = phoneVerificationRequestSchema.parse(req.body);
+      
+      // Check if phone is already used by another user
+      const existingUserWithPhone = await storage.getUserByPhone(validatedData.phone);
+      if (existingUserWithPhone && existingUserWithPhone.id !== req.user.id) {
+        return res.status(400).json({ 
+          message: "This phone number is already registered to another account" 
+        });
+      }
+      
+      // Generate and store verification code
+      const code = await storage.createVerificationCode(req.user.id, validatedData.phone);
+      
+      // In a real app, we would send an SMS with the code
+      // For now, we'll just return it in the response for testing
+      // NOTE: In production, never return the code directly
+      // Instead integrate with an SMS service like Twilio
+      
+      // Simulate SMS sending
+      console.log(`Sending verification code ${code} to ${validatedData.phone}`);
+      
+      res.json({ 
+        message: "Verification code sent",
+        // For demo purposes only, this would be removed in production:
+        code: code 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/user/verify-phone/confirm", checkAuth, async (req, res, next) => {
+    try {
+      // Validate verification data
+      const validatedData = phoneVerificationConfirmSchema.parse(req.body);
+      
+      // Verify the code
+      const isVerified = await storage.verifyPhone(req.user.id, validatedData.code);
+      
+      if (!isVerified) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+      
+      res.json({ 
+        message: "Phone number successfully verified",
+        verified: true
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Payment handling for user upgrade
+  app.post("/api/user/upgrade", checkAuth, async (req, res, next) => {
+    try {
+      const { amount, description } = req.body;
+      
+      // Create a payment record
+      const payment = await storage.createPayment({
+        userId: req.user.id,
+        amount,
+        description,
+        status: "completed"
+      });
+      
+      // Update user to premium
+      await storage.updateUser(req.user.id, { isPremium: true });
+      
+      res.status(201).json({ 
+        success: true,
+        payment
+      });
     } catch (error) {
       next(error);
     }
