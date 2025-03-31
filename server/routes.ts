@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
+import { setupAuth, hashPassword, comparePasswords } from "./auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -542,6 +542,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Phone number successfully verified",
         verified: true
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Password change route
+  app.post("/api/user/change-password", checkAuth, async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Both current and new password are required" });
+      }
+      
+      // Get the user with the current password
+      const user = await storage.getUser(req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Verify the current password
+      const isPasswordCorrect = await comparePasswords(currentPassword, user.password);
+      
+      if (!isPasswordCorrect) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user with the new password
+      const updatedUser = await storage.updateUser(req.user.id, { password: hashedPassword });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update password" });
+      }
+      
+      res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
       next(error);
     }
