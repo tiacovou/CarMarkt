@@ -12,6 +12,7 @@ import BrowseCars from "@/pages/browse-cars";
 import CarDetail from "@/pages/car-detail";
 import SellCar from "@/pages/sell-car";
 import UserProfile from "@/pages/user-profile";
+import HowItWorksPage from "@/pages/how-it-works-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/browse" component={BrowseCars} />
       <Route path="/cars/:id" component={CarDetail} />
+      <Route path="/how-it-works" component={HowItWorksPage} />
       <ProtectedRoute path="/sell" component={SellCar} />
       <ProtectedRoute path="/profile" component={UserProfile} />
       <Route component={NotFound} />

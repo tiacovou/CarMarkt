@@ -4,7 +4,6 @@ import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/home/Hero";
-import HowItWorks from "@/components/home/HowItWorks";
 import SellYourCar from "@/components/home/SellYourCar";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import FeaturedMakes from "@/components/home/FeaturedMakes";
@@ -17,6 +16,11 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function HomePage() {
   const { user } = useAuth();
+  
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // Fetch featured cars
   const { data: featuredCars, isLoading: isLoadingFeatured } = useQuery<Car[]>({
@@ -84,8 +88,6 @@ export default function HomePage() {
         <WhyChooseUs />
         
         <FeaturedMakes />
-        
-        <HowItWorks />
         
         <SellYourCar />
       </main>

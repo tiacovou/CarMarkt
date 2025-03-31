@@ -58,7 +58,7 @@ export default function FeaturedMakes() {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 lg:mb-14">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Popular Car Makes in Cyprus</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Popular Car Makes in Cyprus</h2>
             <p className="text-gray-600 max-w-2xl text-lg">
               Browse through the most popular car brands on the island
             </p>
