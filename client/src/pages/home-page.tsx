@@ -41,9 +41,9 @@ export default function HomePage() {
         <Hero />
         
         {/* Recent Listings - now right below Hero */}
-        <section className="pt-20 pb-12 lg:pt-24 lg:pb-20 bg-gray-50">
+        <section className="pt-24 pb-16 lg:pt-32 lg:pb-20 bg-gray-50">
           <div className="container mx-auto px-4 lg:px-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 lg:mb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 lg:mb-12 pt-6">
               <div>
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Recent Listings</h2>
                 <p className="text-gray-600 md:text-lg">Discover the latest vehicles on our marketplace</p>
