@@ -283,7 +283,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
                       <Gauge className="h-5 w-5 mr-2 text-primary" />
                       <span className="text-gray-700 font-medium">Mileage</span>
                     </div>
-                    <p className="text-gray-900">{car.mileage.toLocaleString()} miles</p>
+                    <p className="text-gray-900">{car.mileage.toLocaleString()} km</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center mb-2">
@@ -376,7 +376,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
         <div>
           <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
             <h1 className="text-2xl font-bold mb-1">{car.year} {car.make} {car.model}</h1>
-            <p className="text-gray-600 mb-4">{car.mileage.toLocaleString()} miles • {car.location}</p>
+            <p className="text-gray-600 mb-4">{car.mileage.toLocaleString()} km • {car.location}</p>
             
             <div className="flex space-x-2 mb-4">
               <Badge className="capitalize bg-blue-100 hover:bg-blue-100 text-blue-800">
@@ -392,7 +392,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
             <div className="border-t border-b py-4 my-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Price</span>
-                <span className="text-3xl font-bold text-primary">${car.price.toLocaleString()}</span>
+                <span className="text-3xl font-bold text-primary">€{car.price.toLocaleString()}</span>
               </div>
             </div>
             

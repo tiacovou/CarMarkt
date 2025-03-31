@@ -3,23 +3,24 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Car } from "@shared/schema";
 
-// Default images for common car makes
+// Default images for common car makes in Cyprus
 const makeImages: Record<string, string> = {
   "Toyota": "https://images.unsplash.com/photo-1559416523-140ddc3d238c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
   "Mercedes-Benz": "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
   "BMW": "https://images.unsplash.com/photo-1556800572-1b8aeef2c54f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-  "Audi": "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-  "Ford": "https://images.unsplash.com/photo-1551830820-330a71b99659?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-  "Honda": "https://images.unsplash.com/photo-1629897048514-3dd7414efc9f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
   "Volkswagen": "https://images.unsplash.com/photo-1622199678703-b924d574e23d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
   "Nissan": "https://images.unsplash.com/photo-1595955304716-5d26659c6be7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-  "Chevrolet": "https://images.unsplash.com/photo-1530987840853-de59e1302121?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+  "Honda": "https://images.unsplash.com/photo-1629897048514-3dd7414efc9f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
   "Hyundai": "https://images.unsplash.com/photo-1641750068478-a69d4689c880?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-  "Kia": "https://images.unsplash.com/photo-1552585140-bdeefd6b9d6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
+  "Mazda": "https://images.unsplash.com/photo-1586464367789-5033030e08f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+  "Kia": "https://images.unsplash.com/photo-1552585140-bdeefd6b9d6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+  "Peugeot": "https://images.unsplash.com/photo-1608926452878-7614e6526cca?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+  "Audi": "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+  "Renault": "https://images.unsplash.com/photo-1589187151053-5ec8818e661b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
 };
 
-// Default image if we don't have a specific one for the make
-const defaultCarImage = "https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80";
+// Default image if we don't have a specific one for the make - Cyprus coastal road with car
+const defaultCarImage = "https://images.unsplash.com/photo-1556881261-e41e8db21ac6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80";
 
 export default function FeaturedMakes() {
   // Fetch all cars to analyze available makes
@@ -57,9 +58,9 @@ export default function FeaturedMakes() {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 lg:mb-14">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Popular Car Makes</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Popular Car Makes in Cyprus</h2>
             <p className="text-gray-600 max-w-2xl text-lg">
-              Browse through our most popular car brands available in our listings
+              Browse through the most popular car brands on the island
             </p>
           </div>
           <Link href="/browse">
