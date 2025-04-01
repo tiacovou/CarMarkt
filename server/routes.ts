@@ -242,6 +242,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to mark a car as available (unsold)
+  app.post("/api/cars/:id/unsold", checkAuth, async (req, res, next) => {
+    try {
+      const carId = parseInt(req.params.id);
+      const car = await storage.getCar(carId);
+      
+      if (!car) {
+        return res.status(404).json({ message: "Car not found" });
+      }
+      
+      if (car.userId !== req.user.id) {
+        return res.status(403).json({ message: "Not authorized to update this car" });
+      }
+      
+      const updatedCar = await storage.markCarAsAvailable(carId);
+      
+      // Get primary image for the updated car
+      const images = await storage.getCarImages(carId);
+      const primaryImage = images.find(img => img.isPrimary);
+      
+      res.json({
+        ...updatedCar,
+        primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   app.delete("/api/cars/:id", checkAuth, async (req, res, next) => {
     try {
       const carId = parseInt(req.params.id);

@@ -36,6 +36,7 @@ export interface IStorage {
   updateCar(id: number, car: Partial<InsertCar>): Promise<Car | undefined>;
   deleteCar(id: number): Promise<boolean>;
   markCarAsSold(id: number): Promise<Car | undefined>;
+  markCarAsAvailable(id: number): Promise<Car | undefined>;
   
   // Car image operations
   getCarImages(carId: number): Promise<CarImage[]>;
@@ -293,6 +294,15 @@ export class MemStorage implements IStorage {
     if (!car) return undefined;
     
     const updatedCar = { ...car, isSold: true };
+    this.cars.set(id, updatedCar);
+    return updatedCar;
+  }
+
+  async markCarAsAvailable(id: number): Promise<Car | undefined> {
+    const car = this.cars.get(id);
+    if (!car) return undefined;
+    
+    const updatedCar = { ...car, isSold: false };
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
