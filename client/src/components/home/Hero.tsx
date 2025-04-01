@@ -5,16 +5,6 @@ export default function Hero() {
   return (
     <section className="relative bg-[#121c2c] text-white">
       <div className="absolute inset-0 bg-[#121c2c] z-10"></div>
-      <div className="absolute inset-0">
-        <img 
-          src="https://images.unsplash.com/photo-1513618827672-0d7f5e227b89?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" 
-          alt="Mountain road in Cyprus" 
-          className="w-full h-full object-cover opacity-10"
-        />
-        <div className="absolute bottom-2 right-2 text-white text-xs opacity-50 z-30">
-          Photo by Joshua Earle on Unsplash
-        </div>
-      </div>
       
       <div className="container mx-auto px-4 lg:px-6 py-28 md:py-36 lg:py-40 relative z-20">
         <div className="text-center max-w-4xl mx-auto">
