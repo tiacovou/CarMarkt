@@ -41,7 +41,7 @@ const carFormSchema = insertCarSchema.extend({
     .max(new Date().getFullYear() + 1, `Year cannot be later than ${new Date().getFullYear() + 1}`),
   price: z.number()
     .int("Price must be a whole number")
-    .min(1, "Price must be greater than 0"),
+    .min(1, "Car price must be greater than 0 to create a listing"),
   mileage: z.number()
     .int("Mileage must be a whole number")
     .min(0, "Mileage cannot be negative"),
@@ -125,10 +125,10 @@ export default function SimpleMultiStepCarForm() {
       make: "",
       model: "",
       year: new Date().getFullYear(),
-      price: 0,
+      price: undefined, // Start with blank price field
       mileage: 0,
       location: "",
-      color: "", // Empty color field
+      color: "",
       condition: "good",
       description: "",
       fuelType: "",
@@ -318,7 +318,8 @@ export default function SimpleMultiStepCarForm() {
                form.getFieldState("year").invalid === false &&
                form.getFieldState("price").invalid === false &&
                !!form.getValues("make") &&
-               !!form.getValues("model");
+               !!form.getValues("model") && 
+               (form.getValues("price") > 0);
       case "details":
         return form.getFieldState("mileage").invalid === false &&
                form.getFieldState("color").invalid === false &&
@@ -365,11 +366,20 @@ export default function SimpleMultiStepCarForm() {
     if (validateCurrentStep()) {
       nextStep();
     } else {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields correctly before proceeding.",
-        variant: "destructive",
-      });
+      // Check if specifically the price is invalid
+      if (currentStep === "basic" && (form.getValues("price") <= 0 || !form.getValues("price"))) {
+        toast({
+          title: "Price Error",
+          description: "Price must be greater than 0 to proceed.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields correctly before proceeding.",
+          variant: "destructive",
+        });
+      }
     }
   };
   
