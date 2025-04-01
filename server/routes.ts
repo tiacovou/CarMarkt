@@ -177,9 +177,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(req.user.id);
       const activeListings = await storage.countUserActiveCars(req.user.id);
       
-      if (!user?.isPremium && activeListings >= 5) {
+      if (!user?.isPremium && (user?.freeListingsUsed || 0) >= 2) {
         return res.status(402).json({ 
-          message: "You have reached your limit of 5 free car listings. Please upgrade to premium to list more cars.",
+          message: "You have used your 2 free car listings for this month. Please upgrade to premium or purchase an additional listing.",
           requiresPayment: true
         });
       }
@@ -301,8 +301,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.user.isPremium) {
         const activeCarsCount = await storage.countUserActiveCars(req.user.id);
         
-        // If user has more than 1 active listing and has already used their free listing
-        if (activeCarsCount > 1 && req.user.freeListingsUsed >= 1) {
+        // If user has already used their 2 free listings
+        if (req.user.freeListingsUsed >= 2) {
           // Create a payment request for €1
           const payment = await storage.createPayment({
             userId: req.user.id,
@@ -611,9 +611,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         isPremium: user?.isPremium || false,
         freeListingsUsed: user?.freeListingsUsed || 0,
-        freeListingsRemaining: Math.max(0, 5 - (user?.freeListingsUsed || 0)),
+        freeListingsRemaining: Math.max(0, 2 - (user?.freeListingsUsed || 0)),
         activeListings,
-        requiresPayment: !user?.isPremium && activeListings >= 5
+        requiresPayment: !user?.isPremium && (user?.freeListingsUsed || 0) >= 2
       });
     } catch (error) {
       next(error);
