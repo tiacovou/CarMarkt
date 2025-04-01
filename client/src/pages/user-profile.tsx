@@ -54,10 +54,9 @@ export default function UserProfile() {
   const { user, logoutMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [editMode, setEditMode] = useState<'name' | 'email' | 'phone' | null>(null);
+  const [editMode, setEditMode] = useState<'name' | 'email' | null>(null);
   const [editedName, setEditedName] = useState('');
   const [editedEmail, setEditedEmail] = useState('');
-  const [editedPhone, setEditedPhone] = useState('');
   const [replyingTo, setReplyingTo] = useState<{messageId: number, toUserId: number, carId: number} | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const { toast } = useToast();
@@ -341,7 +340,7 @@ export default function UserProfile() {
   });
   
   // Start editing a field
-  const startEdit = (field: 'name' | 'email' | 'phone') => {
+  const startEdit = (field: 'name' | 'email') => {
     if (!user) return;
     
     // Initialize the field with current value
@@ -349,8 +348,6 @@ export default function UserProfile() {
       setEditedName(user.name);
     } else if (field === 'email') {
       setEditedEmail(user.email);
-    } else if (field === 'phone') {
-      setEditedPhone(user.phone || '');
     }
     
     setEditMode(field);
@@ -370,10 +367,9 @@ export default function UserProfile() {
     // Always include name as it's required by the backend
     data.name = editMode === 'name' ? editedName : user.name;
     
+    // Add email if we're editing the email field
     if (editMode === 'email') {
       data.email = editedEmail;
-    } else if (editMode === 'phone') {
-      data.phone = editedPhone;
     }
     
     updateProfileMutation.mutate(data);
@@ -569,31 +565,14 @@ export default function UserProfile() {
                         <label className="text-sm font-medium mb-1 block">Phone</label>
                         <div className="flex items-center">
                           <Input 
-                            value={editMode === 'phone' ? editedPhone : (user.phone || "Not provided")} 
-                            disabled={editMode !== 'phone'} 
-                            className={editMode !== 'phone' ? "bg-gray-50" : ""} 
-                            onChange={(e) => setEditedPhone(e.target.value)}
+                            value={user.phone || "Not provided"} 
+                            disabled
+                            className="bg-gray-50"
                             placeholder="+35712345678"
                           />
-                          {editMode === 'phone' ? (
-                            <div className="flex gap-2 ml-2">
-                              <Button 
-                                size="icon" 
-                                variant="outline" 
-                                onClick={handleSaveChanges}
-                                disabled={updateProfileMutation.isPending}
-                              >
-                                {updateProfileMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                              </Button>
-                              <Button size="icon" variant="ghost" onClick={cancelEdit}>
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button variant="ghost" size="icon" className="ml-2" onClick={() => startEdit('phone')}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <div className="flex items-center justify-center ml-2 w-10 h-10">
+                            <span className="text-gray-400 text-xs">Locked</span>
+                          </div>
                         </div>
                       </div>
                     </div>
