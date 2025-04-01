@@ -118,7 +118,7 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
           <div className="flex justify-between items-center mb-1.5">
             <div className="flex items-center text-gray-500 text-xs">
               <Calendar className="h-3 w-3 mr-0.5" />
-              <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+              <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
             </div>
             <div className="flex items-center text-gray-500 text-xs">
               <Eye className="h-3 w-3 mr-0.5" />
@@ -206,7 +206,7 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center text-gray-500 text-sm">
             <Calendar className="h-3.5 w-3.5 mr-1" />
-            <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+            <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
           </div>
           <div className="flex items-center text-gray-500 text-sm">
             <Eye className="h-3.5 w-3.5 mr-1" />

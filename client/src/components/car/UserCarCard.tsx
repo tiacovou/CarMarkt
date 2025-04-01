@@ -236,7 +236,7 @@ export default function UserCarCard({ car }: UserCarCardProps) {
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center text-gray-500 text-sm">
               <Calendar className="h-3.5 w-3.5 mr-1" />
-              <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+              <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
             </div>
             <div className="flex items-center text-gray-500 text-sm">
               <Eye className="h-3.5 w-3.5 mr-1" />
