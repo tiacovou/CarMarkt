@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -66,6 +66,28 @@ export default function CarDetail({ carId }: CarDetailProps) {
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "Escape":
+          closeLightbox();
+          break;
+        case "ArrowLeft":
+          goToPreviousImage();
+          break;
+        case "ArrowRight":
+          goToNextImage();
+          break;
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLightboxOpen, currentImageIndex]);
   
   // Fetch car data
   const { data: car, isLoading: isLoadingCar } = useQuery<Car>({
@@ -527,12 +549,22 @@ export default function CarDetail({ carId }: CarDetailProps) {
 
       {/* Fullscreen Lightbox */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-          <div className="relative w-full h-full flex flex-col justify-center">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          <div 
+            className="relative w-full h-full flex flex-col justify-center"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the content
+          >
             {/* Close button */}
             <button 
-              className="absolute top-4 right-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition"
-              onClick={closeLightbox}
+              type="button"
+              className="absolute top-4 right-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeLightbox();
+              }}
             >
               <X className="h-6 w-6" />
             </button>
@@ -553,15 +585,23 @@ export default function CarDetail({ carId }: CarDetailProps) {
             
             {/* Navigation buttons */}
             <button 
-              className="absolute left-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition"
-              onClick={goToPreviousImage}
+              type="button"
+              className="absolute left-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPreviousImage();
+              }}
             >
               <ChevronLeft className="h-8 w-8" />
             </button>
             
             <button 
-              className="absolute right-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition"
-              onClick={goToNextImage}
+              type="button"
+              className="absolute right-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNextImage();
+              }}
             >
               <ChevronRight className="h-8 w-8" />
             </button>
@@ -574,7 +614,10 @@ export default function CarDetail({ carId }: CarDetailProps) {
                   className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border-2 cursor-pointer ${
                     index === currentImageIndex ? 'border-primary' : 'border-transparent'
                   }`}
-                  onClick={() => setCurrentImageIndex(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex(index);
+                  }}
                 >
                   <img 
                     src={image.imageUrl}
