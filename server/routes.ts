@@ -369,10 +369,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread messages count
   app.get("/api/user/messages/unread/count", checkAuth, async (req, res, next) => {
     try {
+      console.log("Fetching unread messages count for user:", req.user.id);
       const messages = await storage.getMessages(req.user.id);
+      console.log("Total messages for user:", messages.length);
+      console.log("Messages:", JSON.stringify(messages));
       const unreadCount = messages.filter(m => !m.isRead && m.toUserId === req.user.id).length;
+      console.log("Unread messages count:", unreadCount);
       res.json(unreadCount);
     } catch (error) {
+      console.error("Error fetching unread messages count:", error);
       next(error);
     }
   });
@@ -759,6 +764,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ 
         success: true,
         payment
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Test endpoint to create messages (for development only)
+  app.post("/api/test/create-messages", async (req, res, next) => {
+    try {
+      // Create test users if they don't exist
+      let user1 = await storage.getUserByUsername('user1');
+      if (!user1) {
+        user1 = await storage.createUser({
+          username: 'user1',
+          password: await hashPassword('password123'),
+          name: 'User One',
+          email: 'user1@example.com',
+          phone: '+35799123456'
+        });
+      }
+      
+      let user2 = await storage.getUserByUsername('user2');
+      if (!user2) {
+        user2 = await storage.createUser({
+          username: 'user2',
+          password: await hashPassword('password123'),
+          name: 'User Two',
+          email: 'user2@example.com',
+          phone: '+35799789012'
+        });
+      }
+      
+      // Create a test car if none exists
+      const cars = await storage.getCars();
+      let car;
+      if (cars.length === 0) {
+        car = await storage.createCar({
+          make: 'Toyota',
+          model: 'Corolla',
+          year: 2020,
+          price: 15000,
+          mileage: 25000,
+          condition: 'excellent'
+        }, user1.id);
+      } else {
+        car = cars[0];
+      }
+      
+      // Create messages between users
+      const message1 = await storage.createMessage({
+        fromUserId: user1.id,
+        toUserId: user2.id,
+        carId: car.id,
+        content: 'Hi, I\'m interested in your car!'
+      });
+      
+      const message2 = await storage.createMessage({
+        fromUserId: user2.id,
+        toUserId: user1.id,
+        carId: car.id,
+        content: 'Great! When would you like to see it?'
+      });
+      
+      const message3 = await storage.createMessage({
+        fromUserId: user1.id,
+        toUserId: user2.id,
+        carId: car.id,
+        content: 'How about tomorrow at 2pm?'
+      });
+      
+      // Mark message1 as read
+      await storage.markMessageAsRead(message1.id);
+      
+      res.json({
+        success: true,
+        users: [user1.id, user2.id],
+        car: car.id,
+        messages: [message1.id, message2.id, message3.id]
       });
     } catch (error) {
       next(error);
