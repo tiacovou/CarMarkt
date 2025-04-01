@@ -128,7 +128,7 @@ export default function SimpleMultiStepCarForm() {
       price: 0,
       mileage: 0,
       location: "",
-      color: "black", // Default to black
+      color: "", // Empty color field
       condition: "good",
       description: "",
       fuelType: "",
@@ -453,14 +453,21 @@ export default function SimpleMultiStepCarForm() {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price (€)</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Price (€)<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
+                        placeholder="Enter car price" 
+                        required
                         {...field} 
                         onChange={(e) => field.onChange(parseInt(e.target.value) || "")}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Price is mandatory and must be greater than 0
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -498,7 +505,7 @@ export default function SimpleMultiStepCarForm() {
                   <FormItem>
                     <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input value="black" readOnly {...field} className="bg-gray-100" />
+                      <Input placeholder="e.g. Black, Blue, Silver" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
