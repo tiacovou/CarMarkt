@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,11 +55,33 @@ const carFormSchema = insertCarSchema.extend({
   transmission: z.string().optional(),
 });
 
-const carMakes = [
-  "Toyota", "Honda", "Ford", "Chevrolet", "Nissan", "BMW", "Mercedes-Benz", 
-  "Audi", "Volkswagen", "Hyundai", "Kia", "Subaru", "Lexus", "Jeep", "Tesla",
-  "Mazda", "Mitsubishi", "Peugeot", "Citroen", "Renault", "Fiat", "Alfa Romeo"
-];
+// Car makes and models mapping
+const carMakesAndModels: Record<string, string[]> = {
+  "Toyota": ["Corolla", "Camry", "RAV4", "Yaris", "Prius", "Land Cruiser", "Hilux", "C-HR", "Auris"],
+  "Honda": ["Civic", "Accord", "CR-V", "HR-V", "Jazz", "Pilot", "Fit"],
+  "Ford": ["Focus", "Fiesta", "Mustang", "Escape", "Explorer", "F-150", "Ranger", "Kuga"],
+  "Chevrolet": ["Malibu", "Cruze", "Spark", "Silverado", "Tahoe", "Camaro", "Corvette"],
+  "Nissan": ["Micra", "Altima", "Sentra", "Juke", "Qashqai", "X-Trail", "Navara", "Leaf"],
+  "BMW": ["3 Series", "5 Series", "7 Series", "X1", "X3", "X5", "M3", "M5", "i3", "i8"],
+  "Mercedes-Benz": ["A-Class", "C-Class", "E-Class", "S-Class", "GLA", "GLC", "GLE", "G-Class"],
+  "Audi": ["A3", "A4", "A6", "Q3", "Q5", "Q7", "TT", "R8", "e-tron"],
+  "Volkswagen": ["Golf", "Polo", "Passat", "Tiguan", "Touareg", "Arteon", "ID.3", "ID.4", "T-Roc"],
+  "Hyundai": ["i10", "i20", "i30", "Tucson", "Santa Fe", "Kona", "Ioniq", "Elantra", "Accent"],
+  "Kia": ["Picanto", "Rio", "Ceed", "Sportage", "Sorento", "Stonic", "Niro", "Soul", "Stinger"],
+  "Subaru": ["Impreza", "Forester", "Outback", "Legacy", "Crosstrek", "WRX", "BRZ"],
+  "Lexus": ["IS", "ES", "LS", "UX", "NX", "RX", "LX", "RC", "LC"],
+  "Jeep": ["Wrangler", "Grand Cherokee", "Cherokee", "Compass", "Renegade", "Gladiator"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y", "Cybertruck", "Roadster"],
+  "Mazda": ["Mazda2", "Mazda3", "Mazda6", "CX-3", "CX-5", "CX-9", "MX-5 Miata"],
+  "Mitsubishi": ["Mirage", "Outlander", "Eclipse Cross", "ASX", "Pajero", "L200"],
+  "Peugeot": ["208", "308", "508", "2008", "3008", "5008", "Partner", "Rifter"],
+  "Citroen": ["C1", "C3", "C4", "C5", "Berlingo", "C3 Aircross", "C5 Aircross", "Spacetourer"],
+  "Renault": ["Clio", "Megane", "Captur", "Kadjar", "Koleos", "Zoe", "Twingo", "Scenic"],
+  "Fiat": ["500", "Panda", "Tipo", "500X", "500L", "124 Spider"],
+  "Alfa Romeo": ["Giulia", "Stelvio", "Giulietta", "4C", "Tonale"],
+};
+
+const carMakes = Object.keys(carMakesAndModels);
 
 const fuelTypes = [
   "Gasoline", "Diesel", "Hybrid", "Electric", "Plug-in Hybrid"
@@ -90,6 +112,7 @@ export default function SimpleMultiStepCarForm() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<FormStep>("basic");
   const [progress, setProgress] = useState(25);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   
   const form = useForm<z.infer<typeof carFormSchema>>({
     resolver: zodResolver(carFormSchema),
@@ -108,6 +131,21 @@ export default function SimpleMultiStepCarForm() {
     },
     mode: "onChange"
   });
+  
+  // Watch for make changes to update available models
+  const selectedMake = form.watch("make");
+  
+  useEffect(() => {
+    if (selectedMake) {
+      const models = carMakesAndModels[selectedMake] || [];
+      setAvailableModels(models);
+      
+      // Clear model when make changes
+      form.setValue("model", "");
+    } else {
+      setAvailableModels([]);
+    }
+  }, [selectedMake, form]);
   
   // Create car mutation
   const createCarMutation = useMutation({
@@ -311,6 +349,20 @@ export default function SimpleMultiStepCarForm() {
     }
   };
   
+  // Handle manual next step button click
+  const handleNextClick = () => {
+    // Validate the current step
+    if (validateCurrentStep()) {
+      nextStep();
+    } else {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields correctly before proceeding.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   // Render step content based on current step
   const renderStepContent = () => {
     switch (currentStep) {
@@ -351,9 +403,23 @@ export default function SimpleMultiStepCarForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Model</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Camry, Civic, F-150" {...field} />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                      disabled={!selectedMake}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={selectedMake ? "Select model" : "Select make first"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableModels.map((model) => (
+                          <SelectItem key={model} value={model}>{model}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -686,21 +752,25 @@ export default function SimpleMultiStepCarForm() {
               Back
             </Button>
             
-            <Button
-              type="submit"
-              disabled={!canProceed || createCarMutation.isPending}
-              className={currentStep === "description" ? "bg-green-600 hover:bg-green-700" : ""}
-            >
-              {createCarMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {currentStep === "description" ? (
-                createCarMutation.isPending ? "Creating Listing..." : "Create Listing"
-              ) : (
-                <>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+            {currentStep === "description" ? (
+              <Button
+                type="submit"
+                disabled={!canProceed || createCarMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {createCarMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {createCarMutation.isPending ? "Creating Listing..." : "Create Listing"}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={!canProceed || createCarMutation.isPending}
+                onClick={handleNextClick}
+              >
+                Next
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
         </form>
       </Form>
