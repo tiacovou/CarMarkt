@@ -33,8 +33,8 @@ export default function SellYourCar() {
           
           <div className="md:w-1/2">
             <img 
-              src="/blue-car.jpg" 
-              alt="Blue car for sale" 
+              src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+              alt="Person selling a car" 
               className="rounded-lg shadow-xl w-full" 
             />
           </div>
