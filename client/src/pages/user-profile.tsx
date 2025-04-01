@@ -687,14 +687,7 @@ export default function UserProfile() {
                     )
                   )}
                   
-                  {user && !user.isPremium && (
-                    <Link href="/subscribe">
-                      <Button variant="outline" className="flex items-center gap-2">
-                        <Check className="h-4 w-4" />
-                        Go Premium
-                      </Button>
-                    </Link>
-                  )}
+
                 </div>
               </div>
               
