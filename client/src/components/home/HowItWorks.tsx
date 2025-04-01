@@ -4,9 +4,6 @@ import {
   CameraIcon, 
   FileText, 
   EuroIcon, 
-  MessageSquare, 
-  Car, 
-  Handshake, 
   CheckCircle 
 } from "lucide-react";
 import { Link } from "wouter";
@@ -40,23 +37,7 @@ export default function HowItWorks() {
     },
   ];
   
-  const sellingSteps = [
-    {
-      icon: <MessageSquare className="h-8 w-8 text-primary" />,
-      title: "Connect with Buyers",
-      description: "Receive and respond to inquiries from interested buyers through our secure messaging system."
-    },
-    {
-      icon: <Car className="h-8 w-8 text-primary" />,
-      title: "Arrange Viewings",
-      description: "Schedule safe test drives and inspections with verified potential buyers."
-    },
-    {
-      icon: <Handshake className="h-8 w-8 text-primary" />,
-      title: "Complete the Sale",
-      description: "Finalize the transaction, handle paperwork, and transfer ownership securely."
-    }
-  ];
+
   
   return (
     <section id="how-it-works" className="py-16 bg-white">
@@ -79,21 +60,6 @@ export default function HowItWorks() {
                 </div>
                 <h4 className="text-lg font-bold mb-2">{step.title}</h4>
                 <p className="text-gray-600 text-sm">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div className="mb-10">
-          <h3 className="text-xl font-bold text-center mb-8">Completing the Sale</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {sellingSteps.map((step, index) => (
-              <div key={index} className="text-center bg-gray-50 rounded-xl p-6 shadow-sm">
-                <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  {step.icon}
-                </div>
-                <h4 className="text-lg font-bold mb-3">{step.title}</h4>
-                <p className="text-gray-600">{step.description}</p>
               </div>
             ))}
           </div>

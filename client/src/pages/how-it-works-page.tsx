@@ -4,9 +4,6 @@ import {
   CameraIcon, 
   FileText, 
   EuroIcon, 
-  MessageSquare, 
-  Car, 
-  Handshake, 
   CheckCircle 
 } from "lucide-react";
 import { Link } from "wouter";
@@ -48,24 +45,6 @@ export default function HowItWorksPage() {
     },
   ];
   
-  const sellingSteps = [
-    {
-      icon: <MessageSquare className="h-8 w-8 text-primary" />,
-      title: "Connect with Buyers",
-      description: "Receive and respond to inquiries from interested buyers through our secure messaging system."
-    },
-    {
-      icon: <Car className="h-8 w-8 text-primary" />,
-      title: "Arrange Viewings",
-      description: "Schedule safe test drives and inspections with verified potential buyers."
-    },
-    {
-      icon: <Handshake className="h-8 w-8 text-primary" />,
-      title: "Complete the Sale",
-      description: "Finalize the transaction, handle paperwork, and transfer ownership securely."
-    }
-  ];
-  
   return (
     <>
       <Header />
@@ -97,21 +76,6 @@ export default function HowItWorksPage() {
               </div>
             </div>
             
-            <div className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-12">Completing the Sale</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {sellingSteps.map((step, index) => (
-                  <div key={index} className="text-center bg-gray-50 rounded-xl p-6 shadow-sm">
-                    <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                      {step.icon}
-                    </div>
-                    <h3 className="text-lg font-bold mb-3">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className="bg-gray-50 p-8 rounded-xl max-w-3xl mx-auto">
               <h3 className="text-2xl font-bold mb-4 text-center">Ready to Sell Your Car?</h3>
               <p className="text-gray-600 mb-6 text-center">
