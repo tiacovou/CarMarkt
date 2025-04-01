@@ -58,6 +58,8 @@ export default function UserProfile() {
   const [editedName, setEditedName] = useState('');
   const [editedEmail, setEditedEmail] = useState('');
   const [editedPhone, setEditedPhone] = useState('');
+  const [replyingTo, setReplyingTo] = useState<{messageId: number, toUserId: number, carId: number} | null>(null);
+  const [replyMessage, setReplyMessage] = useState('');
   const { toast } = useToast();
   
   // Fetch user's cars
@@ -127,6 +129,61 @@ export default function UserProfile() {
     queryKey: ["/api/user/messages"],
     enabled: !!user,
   });
+  
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: { toUserId: number; carId: number; content: string }) => {
+      const res = await apiRequest("POST", "/api/messages", messageData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      // Reset the reply form
+      setReplyMessage("");
+      setReplyingTo(null);
+      
+      // Refresh messages
+      queryClient.invalidateQueries({ queryKey: ["/api/user/messages"] });
+      
+      toast({
+        title: "Message sent",
+        description: "Your reply has been sent successfully",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to send message",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mark message as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const res = await apiRequest("PUT", `/api/messages/${messageId}/read`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      // Refresh messages
+      queryClient.invalidateQueries({ queryKey: ["/api/user/messages"] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to mark message as read:", error);
+    }
+  });
+  
+  // Handle sending a reply
+  const handleSendReply = () => {
+    if (!replyingTo || !replyMessage.trim()) return;
+    
+    sendMessageMutation.mutate({
+      toUserId: replyingTo.toUserId,
+      carId: replyingTo.carId,
+      content: replyMessage
+    });
+  };
   
   // Setup password change form
   const passwordForm = useForm<PasswordChangeFormValues>({
@@ -715,41 +772,115 @@ export default function UserProfile() {
                 </div>
               ) : messages && messages.length > 0 ? (
                 <div className="space-y-4">
-                  {messages.map((message) => (
-                    <Card key={message.id} className={`${!message.isRead ? 'border-primary border-l-4' : ''}`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-4">
-                            <Avatar className="mt-1">
-                              <AvatarFallback className="bg-gray-200 text-gray-700">
-                                <UserIcon className="h-4 w-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-center mb-1">
-                                <p className="font-medium">{message.fromUserId === user.id ? 'You' : 'User ' + message.fromUserId}</p>
-                                <Badge variant="outline" className="ml-2 text-xs">
-                                  {message.fromUserId === user.id ? 'Sent' : 'Received'}
-                                </Badge>
-                                {!message.isRead && message.toUserId === user.id && (
-                                  <Badge className="ml-2 text-xs">New</Badge>
-                                )}
+                  {messages.map((message) => {
+                    // Group messages by car and other user
+                    const otherUserId = message.fromUserId === user.id ? message.toUserId : message.fromUserId;
+                    const carId = message.carId;
+                    
+                    // We'll use this key to group conversation threads
+                    const conversationKey = `car-${carId}-user-${otherUserId}`;
+                    
+                    return (
+                      <Card 
+                        key={message.id} 
+                        className={`${!message.isRead ? 'border-primary border-l-4' : ''}`}
+                        onClick={() => {
+                          // Mark as read when user clicks on the message
+                          if (!message.isRead && message.toUserId === user.id) {
+                            markAsReadMutation.mutate(message.id);
+                          }
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-4">
+                              <Avatar className="mt-1">
+                                <AvatarFallback className="bg-gray-200 text-gray-700">
+                                  <UserIcon className="h-4 w-4" />
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="flex items-center mb-1">
+                                  <p className="font-medium">{message.fromUserId === user.id ? 'You' : 'User ' + message.fromUserId}</p>
+                                  <Badge variant="outline" className="ml-2 text-xs">
+                                    {message.fromUserId === user.id ? 'Sent' : 'Received'}
+                                  </Badge>
+                                  {!message.isRead && message.toUserId === user.id && (
+                                    <Badge className="ml-2 text-xs">New</Badge>
+                                  )}
+                                </div>
+                                <p className="text-gray-600 text-sm mt-1 mb-2">
+                                  {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
+                                </p>
+                                <p className="text-gray-800">{message.content}</p>
                               </div>
-                              <p className="text-gray-600 text-sm mt-1 mb-2">
-                                {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
-                              </p>
-                              <p className="text-gray-800">{message.content}</p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Link href={`/cars/${message.carId}`}>
+                                <Button variant="outline" size="sm">
+                                  View Car
+                                </Button>
+                              </Link>
+                              {message.fromUserId !== user.id && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent card click handler from firing
+                                    // Show reply form
+                                    setReplyingTo({
+                                      messageId: message.id,
+                                      toUserId: message.fromUserId,
+                                      carId: message.carId
+                                    });
+                                  }}
+                                >
+                                  Reply
+                                </Button>
+                              )}
                             </div>
                           </div>
-                          <Link href={`/cars/${message.carId}`}>
-                            <Button variant="outline" size="sm">
-                              View Car
-                            </Button>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          
+                          {replyingTo && replyingTo.messageId === message.id && (
+                            <div className="mt-4 pt-4 border-t">
+                              <div className="flex flex-col space-y-3">
+                                <div className="flex justify-between">
+                                  <h4 className="text-sm font-medium">Reply to this message</h4>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => setReplyingTo(null)}
+                                    className="h-7 w-7 p-0"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Input
+                                    placeholder="Type your reply..."
+                                    value={replyMessage}
+                                    onChange={(e) => setReplyMessage(e.target.value)}
+                                    className="flex-1"
+                                  />
+                                  <Button 
+                                    size="sm"
+                                    disabled={!replyMessage.trim() || sendMessageMutation.isPending}
+                                    onClick={() => handleSendReply()}
+                                  >
+                                    {sendMessageMutation.isPending ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      "Send"
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               ) : (
                 <Card className="py-8">
