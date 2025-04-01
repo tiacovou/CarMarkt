@@ -505,7 +505,7 @@ export default function SimpleMultiStepCarForm() {
                   <FormItem>
                     <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Black, Blue, Silver" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
