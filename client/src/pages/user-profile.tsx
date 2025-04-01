@@ -532,31 +532,7 @@ export default function UserProfile() {
                         </div>
                       </div>
                       
-                      {/* Admin Section */}
-                      {isAdmin && (
-                        <>
-                          <Separator className="my-4" />
-                          <div className="space-y-4">
-                            <div className="text-sm font-semibold">Admin Tools</div>
-                            <Button 
-                              variant="destructive" 
-                              size="sm" 
-                              className="w-full"
-                              onClick={handleCleanupExpired}
-                              disabled={cleanupExpiredMutation.isPending}
-                            >
-                              {cleanupExpiredMutation.isPending ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Cleaning...
-                                </>
-                              ) : (
-                                <>Clean Expired Listings</>
-                              )}
-                            </Button>
-                          </div>
-                        </>
-                      )}
+                      {/* Admin Section - Removed as requested */}
                     </div>
                   </CardContent>
                 </Card>
@@ -655,10 +631,10 @@ export default function UserProfile() {
                     <div className="pt-4">
                       <div className="bg-gray-50 p-4 rounded-lg border mb-4">
                         <p className="text-sm text-gray-700">
-                          {user.freeListingsUsed === 0 ? (
-                            "You have 1 free car listing available this month."
+                          {user.freeListingsUsed < 2 ? (
+                            `You have ${2 - user.freeListingsUsed} free car listing${user.freeListingsUsed === 1 ? '' : 's'} available this month.`
                           ) : (
-                            "You have used your free listing for this month. Additional listings cost €1 each."
+                            "You have used your free listings for this month."
                           )}
                         </p>
                       </div>
