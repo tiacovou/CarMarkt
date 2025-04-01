@@ -527,8 +527,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Messages routes
   app.get("/api/user/messages", checkAuth, async (req, res, next) => {
     try {
+      // Get all messages for the current user
       const messages = await storage.getMessages(req.user.id);
-      res.json(messages);
+      
+      // Get user details for each message
+      const populatedMessages = await Promise.all(messages.map(async (message) => {
+        // Get sender and receiver details
+        const fromUser = await storage.getUser(message.fromUserId);
+        const toUser = await storage.getUser(message.toUserId);
+        
+        // Get car details
+        const car = await storage.getCar(message.carId);
+        
+        // Return enhanced message object
+        return {
+          ...message,
+          fromUser: fromUser ? {
+            id: fromUser.id,
+            name: fromUser.name,
+            avatarUrl: fromUser.avatarUrl
+          } : undefined,
+          toUser: toUser ? {
+            id: toUser.id,
+            name: toUser.name,
+            avatarUrl: toUser.avatarUrl
+          } : undefined,
+          car: car ? {
+            id: car.id,
+            make: car.make,
+            model: car.model
+          } : undefined
+        };
+      }));
+      
+      res.json(populatedMessages);
     } catch (error) {
       next(error);
     }

@@ -35,7 +35,26 @@ import CarCard from "@/components/car/CarCard";
 import UserCarCard from "@/components/car/UserCarCard";
 import { Loader2, User as UserIcon, Mail, Phone as PhoneIcon, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X } from "lucide-react";
 import { Link } from "wouter";
-import { Car as CarType, Favorite, Message, Payment, User } from "@shared/schema";
+import { Car as CarType, Favorite, Message as MessageType, Payment, User } from "@shared/schema";
+
+// Extended Message interface that includes populated user and car data
+interface Message extends MessageType {
+  fromUser?: {
+    id: number;
+    name: string;
+    avatarUrl?: string;
+  };
+  toUser?: {
+    id: number;
+    name: string;
+    avatarUrl?: string;
+  };
+  car?: {
+    id: number;
+    make: string;
+    model: string;
+  };
+}
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -137,6 +156,60 @@ export default function UserProfile() {
     enabled: !!user,
   });
   
+  // State for conversation management
+  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [newMessage, setNewMessage] = useState('');
+  
+  // Group messages by conversation partners
+  const conversationPartners = messages ? Array.from(new Set(
+    messages.map(msg => 
+      msg.fromUserId === user?.id ? msg.toUserId : msg.fromUserId
+    ).filter(id => id !== user?.id)
+  )) : [];
+  
+  // Get user details for each conversation partner
+  const conversationUsers = conversationPartners.map(partnerId => {
+    // Find a message that involves this partner to get their name
+    const message = messages?.find(msg => 
+      msg.fromUserId === partnerId || msg.toUserId === partnerId
+    );
+    
+    if (!message) return null;
+    
+    // Get name with fallback in case user info isn't loaded yet
+    const name = message.fromUserId === partnerId 
+      ? (message.fromUser?.name || `User ${partnerId}`) 
+      : (message.toUser?.name || `User ${partnerId}`);
+    
+    return {
+      id: partnerId,
+      name,
+      // Count unread messages from this user
+      unreadCount: messages?.filter(msg => 
+        msg.fromUserId === partnerId && 
+        msg.toUserId === user?.id && 
+        !msg.isRead
+      ).length || 0
+    };
+  }).filter(Boolean) as Array<{id: number, name: string, unreadCount: number}>;
+  
+  // Get conversation for selected user
+  const selectedConversation = selectedUser ? 
+    messages?.filter(msg => 
+      (msg.fromUserId === user?.id && msg.toUserId === selectedUser) || 
+      (msg.fromUserId === selectedUser && msg.toUserId === user?.id)
+    ).sort((a, b) => {
+      // Handle null dates safely
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateA - dateB;
+    }) : [];
+  
+  // Get car details for the conversation
+  const conversationCar = selectedConversation && selectedConversation.length > 0 
+    ? allCars?.find(car => car.id === selectedConversation[0].carId) 
+    : null;
+  
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { toUserId: number; carId: number; content: string }) => {
@@ -144,7 +217,8 @@ export default function UserProfile() {
       return await res.json();
     },
     onSuccess: () => {
-      // Reset the reply form
+      // Reset the message form
+      setNewMessage("");
       setReplyMessage("");
       setReplyingTo(null);
       
@@ -181,7 +255,18 @@ export default function UserProfile() {
     }
   });
   
-  // Handle sending a reply
+  // Handle sending a message in the conversation view
+  const handleSendMessage = () => {
+    if (!selectedUser || !conversationCar || !newMessage.trim()) return;
+    
+    sendMessageMutation.mutate({
+      toUserId: selectedUser,
+      carId: conversationCar.id,
+      content: newMessage
+    });
+  };
+  
+  // Handle sending a reply (for backward compatibility)
   const handleSendReply = () => {
     if (!replyingTo || !replyMessage.trim()) return;
     
@@ -777,107 +862,128 @@ export default function UserProfile() {
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : messages && messages.length > 0 ? (
-                <div className="space-y-6">
-                  {messages.map((message) => {
-                    const isIncoming = message.toUserId === user.id;
-                    
-                    // Check if message is already read or being processed
-                    const shouldMarkAsRead = isIncoming && !message.isRead && !markAsReadMutation.isPending;
-                    
-                    // Mark incoming message as read when viewed
-                    if (shouldMarkAsRead) {
-                      markAsReadMutation.mutate(message.id);
-                    }
-                    
-                    return (
-                      <Card key={message.id} className={isIncoming ? "border-l-4 border-l-primary" : ""}>
-                        <CardContent className="p-4">
-                          <div className="flex flex-col gap-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                <Avatar className="h-8 w-8 mr-2">
-                                  <AvatarFallback className="bg-primary/10 text-primary">
-                                    {isIncoming ? message.fromUser.name.charAt(0).toUpperCase() : message.toUser.name.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-sm">
-                                    {isIncoming ? message.fromUser.name : `To: ${message.toUser.name}`}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
-                                    {message.car && ` · About: ${message.car.make} ${message.car.model}`}
-                                  </p>
-                                </div>
-                              </div>
-                              {isIncoming && (
-                                <Badge variant={message.isRead ? "outline" : "default"} className="ml-2">
-                                  {message.isRead ? "Read" : "New"}
-                                </Badge>
-                              )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Conversation List */}
+                  <div className="md:col-span-1">
+                    <div className="bg-white rounded-lg border overflow-hidden">
+                      <div className="p-3 bg-gray-50 border-b">
+                        <h3 className="font-medium">Conversations</h3>
+                      </div>
+                      <div className="divide-y">
+                        {conversationUsers.map(partner => (
+                          <div 
+                            key={partner.id}
+                            onClick={() => setSelectedUser(partner.id)}
+                            className={`p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors ${selectedUser === partner.id ? 'bg-primary/5 border-l-4 border-l-primary' : ''}`}
+                          >
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-3">
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {partner.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{partner.name}</span>
                             </div>
-                            
-                            <div className="bg-gray-50 p-3 rounded-lg">
-                              <p className="text-gray-800">{message.content}</p>
-                            </div>
-                            
-                            {isIncoming && (
-                              <div className="flex justify-end">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => setReplyingTo({
-                                    messageId: message.id,
-                                    toUserId: message.fromUser.id,
-                                    carId: message.carId
-                                  })}
-                                >
-                                  Reply
-                                </Button>
-                              </div>
-                            )}
-                            
-                            {replyingTo?.messageId === message.id && (
-                              <div className="pt-3 border-t mt-2">
-                                <div className="flex flex-col gap-2">
-                                  <p className="text-sm font-medium">Reply to {message.fromUser.name}</p>
-                                  <Input
-                                    value={replyMessage}
-                                    onChange={(e) => setReplyMessage(e.target.value)}
-                                    placeholder="Type your reply here..."
-                                    className="w-full"
-                                  />
-                                  <div className="flex justify-end gap-2 mt-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => setReplyingTo(null)}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button 
-                                      size="sm"
-                                      onClick={handleSendReply}
-                                      disabled={sendMessageMutation.isPending || !replyMessage.trim()}
-                                    >
-                                      {sendMessageMutation.isPending ? (
-                                        <>
-                                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                          Sending...
-                                        </>
-                                      ) : (
-                                        "Send Reply"
-                                      )}
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
+                            {partner.unreadCount > 0 && (
+                              <Badge className="ml-2">{partner.unreadCount}</Badge>
                             )}
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Message Thread */}
+                  <div className="md:col-span-2">
+                    {selectedUser ? (
+                      <Card className="h-full flex flex-col">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-2">
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {conversationUsers.find(u => u.id === selectedUser)?.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <CardTitle className="text-base font-medium">
+                                {conversationUsers.find(u => u.id === selectedUser)?.name}
+                              </CardTitle>
+                            </div>
+                            {conversationCar && (
+                              <Badge variant="outline" className="ml-auto">
+                                {conversationCar.make} {conversationCar.model}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="flex-grow overflow-y-auto">
+                          <div className="space-y-4">
+                            {selectedConversation?.map(message => {
+                              const isFromMe = message.fromUserId === user.id;
+                              
+                              // Mark message as read if we're viewing it and it's not read yet
+                              if (!isFromMe && !message.isRead && !markAsReadMutation.isPending) {
+                                markAsReadMutation.mutate(message.id);
+                              }
+                              
+                              return (
+                                <div 
+                                  key={message.id} 
+                                  className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}
+                                >
+                                  <div 
+                                    className={`max-w-[80%] rounded-lg p-3 ${
+                                      isFromMe 
+                                        ? 'bg-primary text-white rounded-br-none' 
+                                        : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                                    }`}
+                                  >
+                                    <p>{message.content}</p>
+                                    <div className={`text-xs mt-1 ${isFromMe ? 'text-primary-50' : 'text-gray-500'}`}>
+                                      {message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                        <div className="p-3 border-t">
+                          <div className="flex gap-2">
+                            <Input
+                              value={newMessage}
+                              onChange={(e) => setNewMessage(e.target.value)}
+                              placeholder="Type your message..."
+                              className="flex-grow"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey && newMessage.trim()) {
+                                  e.preventDefault();
+                                  handleSendMessage();
+                                }
+                              }}
+                            />
+                            <Button 
+                              onClick={handleSendMessage}
+                              disabled={sendMessageMutation.isPending || !newMessage.trim()}
+                            >
+                              {sendMessageMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Send"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : (
+                      <Card className="h-full flex items-center justify-center">
+                        <CardContent className="flex flex-col items-center py-12 text-center">
+                          <MessageSquare className="h-12 w-12 text-gray-300 mb-4" />
+                          <p className="text-gray-500">Select a conversation to view messages</p>
                         </CardContent>
                       </Card>
-                    );
-                  })}
+                    )}
+                  </div>
                 </div>
               ) : (
                 <Card className="py-8">
