@@ -6,7 +6,6 @@ import Footer from "@/components/layout/Footer";
 import Hero from "@/components/home/Hero";
 import SellYourCar from "@/components/home/SellYourCar";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
-import FeaturedMakes from "@/components/home/FeaturedMakes";
 import CarSearch from "@/components/car/CarSearch";
 import CarCard from "@/components/car/CarCard";
 import { Button } from "@/components/ui/button";
@@ -109,8 +108,6 @@ export default function HomePage() {
         </section>
         
         <WhyChooseUs />
-        
-        <FeaturedMakes />
         
         <SellYourCar />
       </main>
