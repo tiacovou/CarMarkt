@@ -1244,6 +1244,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // Cleanup expired listings (manually triggered)
+  app.post('/api/cleanup-expired-listings', checkAuth, async (req, res, next) => {
+    try {
+      await storage.cleanupExpiredListings();
+      res.json({ message: "Expired listings cleaned up successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Create an expired test listing for testing purposes
+  app.post("/api/create-test-expired-listing", checkAuth, async (req, res, next) => {
+    try {
+      const car = await storage.createExpiredTestCar(req.user.id);
+      res.status(201).json({ 
+        message: "Test expired listing created successfully", 
+        car 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

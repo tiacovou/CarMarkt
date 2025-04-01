@@ -37,6 +37,10 @@ export interface IStorage {
   deleteCar(id: number): Promise<boolean>;
   markCarAsSold(id: number): Promise<Car | undefined>;
   markCarAsAvailable(id: number): Promise<Car | undefined>;
+  renewCarListing(id: number): Promise<Car | undefined>;
+  cleanupExpiredListings(): Promise<void>;
+  hardDeleteCar(carId: number): Promise<void>;
+  createExpiredTestCar(userId: number): Promise<Car>;
   
   // Car image operations
   getCarImages(carId: number): Promise<CarImage[]>;
@@ -81,6 +85,7 @@ export class MemStorage implements IStorage {
   currentFavoriteId: number;
   currentMessageId: number;
   currentPaymentId: number;
+  cleanupInterval: NodeJS.Timeout;
 
   constructor() {
     this.users = new Map();
@@ -100,6 +105,91 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000
     });
+    
+    // Set up automatic cleanup of expired car listings
+    // Run every hour to check for and delete expired listings
+    this.cleanupInterval = setInterval(() => this.cleanupExpiredListings(), 60 * 60 * 1000);
+  }
+  
+  // Method to clean up expired car listings
+  async cleanupExpiredListings(): Promise<void> {
+    console.log("Running expired listings cleanup...");
+    const now = new Date();
+    const expiredCarIds: number[] = [];
+    
+    // Find all expired car listings
+    this.cars.forEach((car, id) => {
+      if (car.expiresAt && car.expiresAt < now) {
+        expiredCarIds.push(id);
+      }
+    });
+    
+    if (expiredCarIds.length === 0) {
+      console.log("No expired listings found.");
+      return;
+    }
+    
+    console.log(`Found ${expiredCarIds.length} expired listings to delete.`);
+    
+    // Delete each expired car listing and related data
+    for (const carId of expiredCarIds) {
+      await this.hardDeleteCar(carId);
+    }
+    
+    console.log(`Expired listings cleanup complete. Deleted ${expiredCarIds.length} listings.`);
+  }
+  
+  // Hard delete a car and its related data (images, favorites, messages)
+  async hardDeleteCar(carId: number): Promise<void> {
+    // Delete related car images
+    const carImages = await this.getCarImages(carId);
+    for (const image of carImages) {
+      this.carImages.delete(image.id);
+    }
+    
+    // Delete related favorites
+    const allFavorites = Array.from(this.favorites.values());
+    for (const favorite of allFavorites) {
+      if (favorite.carId === carId) {
+        this.favorites.delete(favorite.id);
+      }
+    }
+    
+    // Delete related messages
+    const allMessages = Array.from(this.messages.values());
+    for (const message of allMessages) {
+      if (message.carId === carId) {
+        this.messages.delete(message.id);
+      }
+    }
+    
+    // Finally, delete the car itself
+    this.cars.delete(carId);
+  }
+  
+  async createExpiredTestCar(userId: number): Promise<Car> {
+    // Create a car with an expiration date in the past for testing purposes
+    const car = await this.createCar({
+      make: 'Toyota',
+      model: 'Corolla',
+      year: 2018,
+      price: 12000,
+      mileage: 45000,
+      condition: 'good',
+      color: 'Silver',
+      location: 'Nicosia, Cyprus',
+      description: 'This is a test expired listing'
+    }, userId);
+    
+    // Set expiration date to one month and one day ago
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 1);
+    
+    car.expiresAt = oneMonthAgo;
+    this.cars.set(car.id, car);
+    
+    return car;
   }
 
   // User operations
@@ -139,7 +229,8 @@ export class MemStorage implements IStorage {
       verificationCode: null,
       verificationCodeExpires: null,
       stripeCustomerId: null,
-      stripeSubscriptionId: null
+      stripeSubscriptionId: null,
+      avatarUrl: insertUser.avatarUrl || null
     };
     this.users.set(id, user);
     return user;
@@ -275,11 +366,12 @@ export class MemStorage implements IStorage {
       id, 
       userId, 
       isActive: true, 
+      isSold: false,
       createdAt,
       expiresAt,
       fuelType: car.fuelType || null,
       transmission: car.transmission || null,
-      color: car.color || null,
+      color: car.color || "",
       description: car.description || null 
     };
     this.cars.set(id, newCar);
