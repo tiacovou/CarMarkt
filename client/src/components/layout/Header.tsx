@@ -21,6 +21,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Car, User, ChevronDown, Menu, MessageSquare } from "lucide-react";
 
+// Logo URLs
+const logo = "/logo.svg";
+const logoSmall = "/favicon.svg";
+
 export default function Header() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
@@ -49,9 +53,17 @@ export default function Header() {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center space-x-2 cursor-pointer">
-              <span className="text-primary text-xl md:text-2xl font-bold">CarTrader</span>
-              <Car className="h-5 w-5 text-primary" />
+            <div className="flex items-center cursor-pointer">
+              <img 
+                src={logo} 
+                alt="CarMarkt.com.cy" 
+                className="h-10 hidden md:block" 
+              />
+              <img 
+                src={logoSmall} 
+                alt="CarMarkt.com.cy" 
+                className="h-10 md:hidden" 
+              />
             </div>
           </Link>
 
@@ -168,7 +180,9 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle>CarTrader</SheetTitle>
+                  <SheetTitle className="flex justify-center">
+                    <img src="/favicon.svg" alt="CarMarkt.com.cy" className="h-10" />
+                  </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 flex flex-col space-y-4">
                   {navLinks.map((link, index) => (
