@@ -99,10 +99,13 @@ export default function Header() {
                   }
                 }}
                 className={`text-gray-600 hover:text-primary transition text-sm lg:text-base whitespace-nowrap cursor-pointer ${
-                  link.isComingSoon ? "relative" : ""
+                  link.isComingSoon ? "relative flex flex-col items-center" : ""
                 }`}
               >
                 {link.text}
+                {link.isComingSoon && (
+                  <span className="text-xs text-primary mt-1">coming soon</span>
+                )}
               </div>
             ))}
           </div>
@@ -213,10 +216,13 @@ export default function Header() {
                         }
                       }}
                       className={`text-gray-600 hover:text-primary transition py-2 cursor-pointer ${
-                        link.isComingSoon ? "relative" : ""
+                        link.isComingSoon ? "relative flex flex-col" : ""
                       }`}
                     >
-                      {link.text}
+                      <div>{link.text}</div>
+                      {link.isComingSoon && (
+                        <span className="text-xs text-primary mt-1">coming soon</span>
+                      )}
                     </div>
                   ))}
                   
