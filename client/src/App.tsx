@@ -14,6 +14,8 @@ import SellCar from "@/pages/sell-car";
 import UserProfile from "@/pages/user-profile";
 import HowItWorksPage from "@/pages/how-it-works-page";
 import Payment from "@/pages/payment";
+import Subscribe from "@/pages/subscribe";
+import Checkout from "@/pages/checkout";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -27,6 +29,8 @@ function Router() {
       <ProtectedRoute path="/sell" component={SellCar} />
       <ProtectedRoute path="/profile" component={UserProfile} />
       <ProtectedRoute path="/payment" component={Payment} />
+      <ProtectedRoute path="/subscribe" component={Subscribe} />
+      <ProtectedRoute path="/checkout" component={Checkout} />
       <Route component={NotFound} />
     </Switch>
   );
