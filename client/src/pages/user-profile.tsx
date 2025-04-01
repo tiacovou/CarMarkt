@@ -613,7 +613,7 @@ export default function UserProfile() {
                     </div>
                     
                     <h3 className="text-xl font-semibold mb-1">{user.name}</h3>
-                    <p className="text-gray-500 text-sm mb-4">Member since {new Date().toLocaleDateString()}</p>
+                    <p className="text-gray-500 text-sm mb-4">Member since {new Date().toLocaleDateString('en-GB')}</p>
                     
                     <Button 
                       variant="outline" 

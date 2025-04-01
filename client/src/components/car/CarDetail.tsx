@@ -424,7 +424,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
             
             <div className="flex items-center text-gray-600 mb-2">
               <Calendar className="h-4 w-4 mr-2" />
-              <span>Listed on {car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+              <span>Listed on {car.createdAt ? new Date(car.createdAt).toLocaleDateString('en-GB') : 'N/A'}</span>
             </div>
             
             <div className="flex items-center text-gray-600 mb-6">
