@@ -343,10 +343,12 @@ export class MemStorage implements IStorage {
   
   async searchCars(search: CarSearch): Promise<Car[]> {
     const now = new Date();
+    console.log("Searching cars with criteria:", JSON.stringify(search));
+    
     return Array.from(this.cars.values()).filter(car => {
-      // Apply search filters
-      if (search.make && search.make !== "" && car.make.toLowerCase() !== search.make.toLowerCase()) return false;
-      if (search.model && search.model !== "" && car.model.toLowerCase() !== search.model.toLowerCase()) return false;
+      // Apply search filters - case insensitive for string searches
+      if (search.make && search.make !== "" && !car.make.toLowerCase().includes(search.make.toLowerCase())) return false;
+      if (search.model && search.model !== "" && !car.model.toLowerCase().includes(search.model.toLowerCase())) return false;
       if (search.minYear && search.minYear > 0 && car.year < search.minYear) return false;
       if (search.maxPrice && search.maxPrice > 0 && car.price > search.maxPrice) return false;
       
