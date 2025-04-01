@@ -581,14 +581,12 @@ export default function UserProfile() {
                     <div className="pt-4">
                       <div className="bg-gray-50 p-4 rounded-lg border mb-4">
                         <p className="text-sm text-gray-700">
-                          You have used <span className="font-semibold">{user.freeListingsUsed}</span> of your <span className="font-semibold">5</span> free listings.
+                          {user.freeListingsUsed === 0 ? (
+                            "You have 1 free car listing available this month."
+                          ) : (
+                            "You have used your free listing for this month. Additional listings cost €1 each."
+                          )}
                         </p>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
-                          ></div>
-                        </div>
                       </div>
                     </div>
                     
@@ -889,14 +887,8 @@ export default function UserProfile() {
                         <div className="rounded-lg border bg-card p-4">
                           <div className="space-y-3">
                             <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-500">Free Listings</span>
-                              <span className="font-medium">{user.freeListingsUsed} / 5 used</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-primary h-2 rounded-full" 
-                                style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
-                              ></div>
+                              <span className="text-sm text-gray-500">Free Listing</span>
+                              <span className="font-medium">{user.freeListingsUsed === 0 ? "Available" : "Used"}</span>
                             </div>
                             <div className="pt-1 text-sm">
                               <p>€1.00 fee per additional listing</p>
@@ -905,25 +897,10 @@ export default function UserProfile() {
                         </div>
                         
                         <div className="rounded-lg border border-primary bg-primary/5 p-4">
-                          <div className="space-y-3">
-                            <h4 className="font-medium text-sm">Get unlimited listings:</h4>
-                            <Button 
-                              className="w-full" 
-                              onClick={() => upgradeMutation.mutate()}
-                              disabled={upgradeMutation.isPending}
-                            >
-                              {upgradeMutation.isPending ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <CreditCard className="mr-2 h-4 w-4" />
-                                  Upgrade - €5.00/month
-                                </>
-                              )}
-                            </Button>
+                          <div className="space-y-3 text-sm">
+                            <p>Need to add more car listings?</p>
+                            <p>Each additional listing beyond your free monthly listing costs €1.00.</p>
+                            <p>All listings expire after 1 month.</p>
                           </div>
                         </div>
                       </div>
@@ -1039,11 +1016,13 @@ export default function UserProfile() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">No Payment History</h3>
                     <p className="text-gray-500 mb-4 max-w-md">
-                      You haven't made any payments yet. Upgrade to premium for unlimited listings or pay for individual premium listings.
+                      You haven't made any payments yet. When you add additional car listings, you'll be charged €1.00 per listing beyond your free monthly listing.
                     </p>
-                    <Button onClick={() => setActiveTab("profile")}>
-                      Go to Premium Options
-                    </Button>
+                    <Link href="/sell">
+                      <Button>
+                        Add a Car Listing
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               )}

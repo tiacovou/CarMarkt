@@ -142,7 +142,7 @@ export default function Subscribe() {
               <ul className="space-y-3">
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Post unlimited car listings</span>
+                  <span>Post unlimited car listings (1 free + pay for more)</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
@@ -165,7 +165,7 @@ export default function Subscribe() {
                 </div>
                 <div className="flex items-center text-blue-700 text-sm">
                   <RefreshCw className="h-4 w-4 mr-1" />
-                  Monthly billing
+                  1 free listing + unlimited additional listings
                 </div>
               </div>
             </div>
