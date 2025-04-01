@@ -375,7 +375,7 @@ export default function AuthPage() {
             <div className="bg-[#121c2c] rounded-xl p-8 text-white hidden lg:flex flex-col justify-center items-center">
               <div className="text-center">
                 <h1 className="text-5xl font-bold leading-tight mb-6">Find Your Perfect Car in Cyprus</h1>
-                <p className="text-xl mb-4">Buy and sell vehicles with confidence on Cyprus' most trusted car marketplace</p>
+                <p className="text-xl mb-4">Buy and sell vehicles with confidence on CarMarkt - Cyprus' most trusted car marketplace</p>
               </div>
             </div>
           </div>

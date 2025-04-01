@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-xl font-bold">CarTrader</span>
+              <span className="text-xl font-bold">CarMarkt</span>
               <Car className="h-5 w-5" />
             </div>
             <p className="text-gray-600 mb-4">
@@ -101,7 +101,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-200 pt-8 text-center text-gray-600">
-          <p>&copy; {new Date().getFullYear()} CarTrader. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} CarMarkt. All rights reserved.</p>
         </div>
       </div>
     </footer>

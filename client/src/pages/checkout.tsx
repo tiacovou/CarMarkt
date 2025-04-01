@@ -207,7 +207,7 @@ export default function Checkout() {
           <CardHeader>
             <CardTitle>Complete Your Payment</CardTitle>
             <CardDescription>
-              You're paying €1.00 for listing a car on Cyprus AutoMarket.
+              You're paying €1.00 for listing a car on CarMarkt.
             </CardDescription>
           </CardHeader>
           <CardContent>
