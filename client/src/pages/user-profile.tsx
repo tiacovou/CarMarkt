@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/form";
 import CarCard from "@/components/car/CarCard";
 import UserCarCard from "@/components/car/UserCarCard";
-import { Loader2, User as UserIcon, Mail, Phone as PhoneIcon, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X } from "lucide-react";
+import { Loader2, User as UserIcon, Mail, Phone as PhoneIcon, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X, ArrowUpRight } from "lucide-react";
 import { Link } from "wouter";
 import { Car as CarType, Favorite, Message as MessageType, Payment, User } from "@shared/schema";
 
@@ -898,21 +898,31 @@ export default function UserProfile() {
                     {selectedUser ? (
                       <Card className="h-full flex flex-col">
                         <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <Avatar className="h-8 w-8 mr-2">
-                                <AvatarFallback className="bg-primary/10 text-primary">
-                                  {conversationUsers.find(u => u.id === selectedUser)?.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <CardTitle className="text-base font-medium">
-                                {conversationUsers.find(u => u.id === selectedUser)?.name}
-                              </CardTitle>
+                          <div className="flex flex-col space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <Avatar className="h-8 w-8 mr-2">
+                                  <AvatarFallback className="bg-primary/10 text-primary">
+                                    {conversationUsers.find(u => u.id === selectedUser)?.name.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <CardTitle className="text-base font-medium">
+                                  {conversationUsers.find(u => u.id === selectedUser)?.name}
+                                </CardTitle>
+                              </div>
                             </div>
+                            
                             {conversationCar && (
-                              <Badge variant="outline" className="ml-auto">
-                                {conversationCar.make} {conversationCar.model}
-                              </Badge>
+                              <div className="flex items-center">
+                                <span className="text-sm text-gray-500 mr-2">Conversation about:</span>
+                                <Link 
+                                  to={`/cars/${conversationCar.id}`} 
+                                  className="text-sm font-medium text-primary hover:underline flex items-center"
+                                >
+                                  {conversationCar.make} {conversationCar.model} {conversationCar.year}
+                                  <ArrowUpRight className="ml-1 h-3 w-3" />
+                                </Link>
+                              </div>
                             )}
                           </div>
                         </CardHeader>
