@@ -578,50 +578,16 @@ export default function UserProfile() {
                     </div>
                     
                     <div className="pt-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-medium">Premium Status</h3>
-                        {user.isPremium ? (
-                          <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
-                        ) : (
-                          <Badge variant="outline">Inactive</Badge>
-                        )}
-                      </div>
                       <div className="bg-gray-50 p-4 rounded-lg border mb-4">
-                        {user.isPremium ? (
-                          <p className="text-sm text-gray-700 mb-2">
-                            Your premium subscription is active. Enjoy unlimited car listings!
-                          </p>
-                        ) : (
-                          <div className="space-y-3">
-                            <p className="text-sm text-gray-700">
-                              You have used <span className="font-semibold">{user.freeListingsUsed}</span> of your <span className="font-semibold">5</span> free listings.
-                            </p>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                              <div 
-                                className="bg-primary h-2 rounded-full" 
-                                style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
-                              ></div>
-                            </div>
-                            <Button 
-                              variant="default"
-                              className="w-full" 
-                              onClick={() => upgradeMutation.mutate()}
-                              disabled={upgradeMutation.isPending}
-                            >
-                              {upgradeMutation.isPending ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <CreditCard className="mr-2 h-4 w-4" />
-                                  Get Premium - €5.00/month
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
+                        <p className="text-sm text-gray-700">
+                          You have used <span className="font-semibold">{user.freeListingsUsed}</span> of your <span className="font-semibold">5</span> free listings.
+                        </p>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full" 
+                            style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                     
