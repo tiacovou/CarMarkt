@@ -23,8 +23,8 @@ import { Car, User, ChevronDown, Menu, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Logo URLs
-const logo = "/logo.svg";
-const logoSmall = "/favicon.svg";
+const logo = "/carmarkt.png";
+const logoSmall = "/carmarkt.png";
 
 export default function Header() {
   const [location] = useLocation();
@@ -194,7 +194,7 @@ export default function Header() {
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle className="flex justify-center">
-                    <img src="/favicon.svg" alt="CarMarkt.com.cy" className="h-10" />
+                    <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-10" />
                   </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 flex flex-col space-y-4">
