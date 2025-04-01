@@ -709,6 +709,61 @@ export default function UserProfile() {
                 <h2 className="text-xl font-semibold">Messages</h2>
               </div>
               
+              {isLoadingMessages ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : messages && messages.length > 0 ? (
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <Card key={message.id} className={`${!message.isRead ? 'border-primary border-l-4' : ''}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-4">
+                            <Avatar className="mt-1">
+                              <AvatarFallback className="bg-gray-200 text-gray-700">
+                                <UserIcon className="h-4 w-4" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="flex items-center mb-1">
+                                <p className="font-medium">{message.fromUserId === user.id ? 'You' : 'User ' + message.fromUserId}</p>
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                  {message.fromUserId === user.id ? 'Sent' : 'Received'}
+                                </Badge>
+                                {!message.isRead && message.toUserId === user.id && (
+                                  <Badge className="ml-2 text-xs">New</Badge>
+                                )}
+                              </div>
+                              <p className="text-gray-600 text-sm mt-1 mb-2">
+                                {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
+                              </p>
+                              <p className="text-gray-800">{message.content}</p>
+                            </div>
+                          </div>
+                          <Link href={`/cars/${message.carId}`}>
+                            <Button variant="outline" size="sm">
+                              View Car
+                            </Button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="py-8">
+                  <CardContent className="flex flex-col items-center justify-center text-center">
+                    <div className="bg-gray-100 p-3 rounded-full mb-4">
+                      <MessageSquare className="h-8 w-8 text-gray-500" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">No Messages</h3>
+                    <p className="text-gray-500 mb-4 max-w-md">
+                      You don't have any messages yet. Messages from buyers and sellers will appear here.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
             
             {/* Payments & Subscription Tab */}
@@ -850,66 +905,7 @@ export default function UserProfile() {
                 </Card>
               </div>
               
-              {isLoadingMessages ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : messages && messages.length > 0 ? (
-                <div className="space-y-4">
-                  {messages.map((message) => (
-                    <Card key={message.id} className={`${!message.isRead ? 'border-primary border-l-4' : ''}`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-4">
-                            <Avatar className="mt-1">
-                              <AvatarFallback className="bg-gray-200 text-gray-700">
-                                <UserIcon className="h-4 w-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-center mb-1">
-                                <p className="font-medium">{message.fromUserId === user.id ? 'You' : 'User ' + message.fromUserId}</p>
-                                <Badge variant="outline" className="ml-2 text-xs">
-                                  {message.fromUserId === user.id ? 'Sent' : 'Received'}
-                                </Badge>
-                                {!message.isRead && message.toUserId === user.id && (
-                                  <Badge className="ml-2 text-xs">New</Badge>
-                                )}
-                              </div>
-                              <p className="text-gray-600 text-sm mt-1 mb-2">
-                                {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
-                              </p>
-                              <p className="text-gray-800">{message.content}</p>
-                            </div>
-                          </div>
-                          <Link href={`/cars/${message.carId}`}>
-                            <Button variant="outline" size="sm">
-                              View Car
-                            </Button>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card className="py-8">
-                  <CardContent className="flex flex-col items-center justify-center text-center">
-                    <div className="bg-gray-100 p-3 rounded-full mb-4">
-                      <MessageSquare className="h-8 w-8 text-gray-500" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">No Messages</h3>
-                    <p className="text-gray-500 mb-4 max-w-md">
-                      You don't have any messages yet. Messages from buyers and sellers will appear here.
-                    </p>
-                    <Link href="/browse">
-                      <Button>
-                        Browse Cars
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              )}
+
             </TabsContent>
             
             {/* Payments Tab */}
