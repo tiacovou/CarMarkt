@@ -385,7 +385,9 @@ export default function SimpleMultiStepCarForm() {
                 name="make"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Make</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Make<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -412,7 +414,9 @@ export default function SimpleMultiStepCarForm() {
                 name="model"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Model</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Model<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -440,7 +444,9 @@ export default function SimpleMultiStepCarForm() {
                 name="year"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Year</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Year<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -490,7 +496,9 @@ export default function SimpleMultiStepCarForm() {
                 name="mileage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mileage (km)</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Mileage (km)<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
