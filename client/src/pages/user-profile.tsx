@@ -32,6 +32,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import CarCard from "@/components/car/CarCard";
+import UserCarCard from "@/components/car/UserCarCard";
 import { Loader2, User as UserIcon, Mail, Phone as PhoneIcon, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X } from "lucide-react";
 import { Link } from "wouter";
 import { Car as CarType, Favorite, Message, Payment, User } from "@shared/schema";
@@ -628,7 +629,7 @@ export default function UserProfile() {
               ) : userCars && userCars.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userCars.map((car) => (
-                    <CarCard 
+                    <UserCarCard 
                       key={car.id} 
                       car={car} 
                     />

@@ -52,6 +52,7 @@ export const cars = pgTable("cars", {
   description: text("description"),
   location: text("location").notNull(),
   isActive: boolean("is_active").default(true),
+  isSold: boolean("is_sold").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -60,6 +61,7 @@ export const insertCarSchema = createInsertSchema(cars).omit({
   userId: true,
   createdAt: true,
   isActive: true,
+  isSold: true,
 });
 
 // Car images schema
