@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Car, User, ChevronDown, Menu, MessageSquare } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Logo URLs
 const logo = "/logo.svg";
@@ -29,6 +30,7 @@ export default function Header() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
 
   // Fetch unread messages count
   const { data: unreadMessages = 0 } = useQuery<number>({
@@ -41,10 +43,26 @@ export default function Header() {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+  
+  const showComingSoon = (feature: string) => {
+    toast({
+      title: "Coming Soon",
+      description: `${feature} feature will be available soon. Stay tuned!`,
+      duration: 3000,
+    });
+  };
 
-  const navLinks = [
+  type NavLink = {
+    text: string;
+    href?: string;
+    isComingSoon?: boolean;
+  };
+
+  const navLinks: NavLink[] = [
     { text: "Browse Cars", href: "/browse" },
     { text: "How It Works", href: "/how-it-works" },
+    { text: "Pricing", isComingSoon: true },
+    { text: "Dealers", isComingSoon: true },
   ];
 
   return (
@@ -73,8 +91,16 @@ export default function Header() {
             {navLinks.map((link, index) => (
               <div 
                 key={index}
-                onClick={() => window.location.href = link.href}
-                className="text-gray-600 hover:text-primary transition text-sm lg:text-base whitespace-nowrap cursor-pointer"
+                onClick={() => {
+                  if (link.isComingSoon) {
+                    showComingSoon(link.text);
+                  } else {
+                    window.location.href = link.href!;
+                  }
+                }}
+                className={`text-gray-600 hover:text-primary transition text-sm lg:text-base whitespace-nowrap cursor-pointer ${
+                  link.isComingSoon ? "relative" : ""
+                }`}
               >
                 {link.text}
               </div>
@@ -178,10 +204,17 @@ export default function Header() {
                     <div 
                       key={index}
                       onClick={() => {
-                        window.location.href = link.href;
-                        setMobileMenuOpen(false);
+                        if (link.isComingSoon) {
+                          showComingSoon(link.text);
+                          setMobileMenuOpen(false);
+                        } else if (link.href) {
+                          window.location.href = link.href;
+                          setMobileMenuOpen(false);
+                        }
                       }}
-                      className="text-gray-600 hover:text-primary transition py-2 cursor-pointer"
+                      className={`text-gray-600 hover:text-primary transition py-2 cursor-pointer ${
+                        link.isComingSoon ? "relative" : ""
+                      }`}
                     >
                       {link.text}
                     </div>
