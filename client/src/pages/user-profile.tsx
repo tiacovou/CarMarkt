@@ -367,13 +367,12 @@ export default function UserProfile() {
     
     const data: any = {};
     
-    if (editMode === 'name') {
-      data.name = editedName;
-    } else if (editMode === 'email') {
-      data.name = user.name;  // Required by backend
+    // Always include name as it's required by the backend
+    data.name = editMode === 'name' ? editedName : user.name;
+    
+    if (editMode === 'email') {
       data.email = editedEmail;
     } else if (editMode === 'phone') {
-      data.name = user.name;  // Required by backend
       data.phone = editedPhone;
     }
     
