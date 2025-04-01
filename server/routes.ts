@@ -271,6 +271,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Renew car listing (extend expiration by 1 month)
+  app.post("/api/cars/:id/renew", checkAuth, async (req, res, next) => {
+    try {
+      const carId = parseInt(req.params.id);
+      const car = await storage.getCar(carId);
+
+      if (!car) {
+        return res.status(404).json({ message: "Car not found" });
+      }
+
+      if (car.userId !== req.user.id) {
+        return res.status(403).json({ message: "Not authorized to modify this car" });
+      }
+      
+      // If the car is marked as sold, don't allow renewal
+      if (car.isSold) {
+        return res.status(400).json({ message: "Cannot renew a listing that is marked as sold" });
+      }
+      
+      // Check if user is premium or has free listings available
+      if (!req.user.isPremium) {
+        const activeCarsCount = await storage.countUserActiveCars(req.user.id);
+        
+        // If user has more than 1 active listing and has already used their free listing
+        if (activeCarsCount > 1 && req.user.freeListingsUsed >= 1) {
+          // Create a payment request for €1
+          const payment = await storage.createPayment({
+            userId: req.user.id,
+            amount: 100, // €1 in cents
+            description: "Car listing renewal",
+            status: "pending",
+            carId: car.id
+          });
+          
+          return res.status(402).json({ 
+            message: "Payment required to renew listing", 
+            paymentId: payment.id 
+          });
+        }
+        
+        // Update free listings used count if the user still has free listings available
+        await storage.updateUser(req.user.id, {
+          freeListingsUsed: (req.user.freeListingsUsed || 0) + 1
+        });
+      }
+
+      // Renew the listing (update expiration date)
+      const updatedCar = await storage.renewCarListing(carId);
+      
+      // Get primary image for the updated car
+      const images = await storage.getCarImages(carId);
+      const primaryImage = images.find(img => img.isPrimary);
+      
+      res.json({
+        ...updatedCar,
+        primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   app.delete("/api/cars/:id", checkAuth, async (req, res, next) => {
     try {
       const carId = parseInt(req.params.id);
@@ -553,7 +615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/payments", checkAuth, async (req, res, next) => {
     try {
-      const { amount, description } = req.body;
+      const { amount, description, type, carId } = req.body;
       
       // Simple validation
       if (!amount || amount <= 0) {
@@ -565,18 +627,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user.id,
         amount,
         description,
-        status: "pending"
+        status: "pending",
+        carId: carId ? parseInt(carId) : undefined
       });
       
-      // In a real app, this would integrate with a payment provider
+      // In a real app, this would integrate with a payment provider like Stripe
       // For now, we'll simulate successful payment
       
       // Update payment status to completed
       const updatedPayment = await storage.updatePaymentStatus(payment.id, "completed");
       
-      // If payment is for premium status, update user
-      if (description.includes("premium")) {
+      // Handle different payment types
+      if (type === "premium" || description.includes("premium")) {
+        // If payment is for premium status, update user
         await storage.updateUser(req.user.id, { isPremium: true });
+      } else if (type === "listing" && carId) {
+        // If payment is for listing renewal, renew the car listing
+        const car = await storage.getCar(parseInt(carId));
+        
+        if (car && car.userId === req.user.id) {
+          await storage.renewCarListing(parseInt(carId));
+        }
       }
       
       res.status(201).json(updatedPayment);
