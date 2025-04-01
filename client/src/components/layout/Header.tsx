@@ -48,31 +48,36 @@ export default function Header() {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link href="/">
-            <a className="flex items-center space-x-2">
-              <span className="text-primary text-xl md:text-2xl font-bold">CarTrader</span>
-              <Car className="h-5 w-5 text-primary" />
-            </a>
-          </Link>
+          <div 
+            className="flex items-center space-x-2 cursor-pointer" 
+            onClick={() => window.location.href = '/'}
+          >
+            <span className="text-primary text-xl md:text-2xl font-bold">CarTrader</span>
+            <Car className="h-5 w-5 text-primary" />
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             {navLinks.map((link, index) => (
-              <Link key={index} href={link.href}>
-                <a className="text-gray-600 hover:text-primary transition text-sm lg:text-base whitespace-nowrap">
-                  {link.text}
-                </a>
-              </Link>
+              <div 
+                key={index} 
+                className="text-gray-600 hover:text-primary transition text-sm lg:text-base whitespace-nowrap cursor-pointer"
+                onClick={() => window.location.href = link.href}
+              >
+                {link.text}
+              </div>
             ))}
           </div>
 
           {/* Auth & Sell Button */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            <Link href="/sell">
-              <Button variant="default" className="hidden md:block text-sm lg:text-base">
-                Sell Your Car
-              </Button>
-            </Link>
+            <Button 
+              variant="default" 
+              className="hidden md:block text-sm lg:text-base"
+              onClick={() => window.location.href = '/sell'}
+            >
+              Sell Your Car
+            </Button>
 
             {user ? (
               <>
