@@ -19,7 +19,7 @@ export default function Footer() {
           {/* Company Info */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-10" />
+              <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-14" />
             </div>
             <p className="text-gray-600 mb-6">
               The trusted marketplace for buying and selling cars. Connect with buyers and sellers in your area.

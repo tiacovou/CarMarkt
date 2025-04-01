@@ -77,12 +77,12 @@ export default function Header() {
             <img 
               src={logo} 
               alt="CarMarkt.com.cy" 
-              className="h-10 hidden md:block" 
+              className="h-12 hidden md:block" 
             />
             <img 
               src={logoSmall} 
               alt="CarMarkt.com.cy" 
-              className="h-10 md:hidden" 
+              className="h-12 md:hidden" 
             />
           </div>
 
@@ -194,7 +194,7 @@ export default function Header() {
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle className="flex justify-center">
-                    <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-10" />
+                    <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-12" />
                   </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 flex flex-col space-y-4">
