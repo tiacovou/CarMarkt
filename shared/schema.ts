@@ -53,6 +53,7 @@ export const cars = pgTable("cars", {
   location: text("location").notNull(),
   isActive: boolean("is_active").default(true),
   isSold: boolean("is_sold").default(false),
+  viewCount: integer("view_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
 });
@@ -63,6 +64,7 @@ export const insertCarSchema = createInsertSchema(cars).omit({
   createdAt: true,
   isActive: true,
   isSold: true,
+  viewCount: true,
   expiresAt: true,
 });
 

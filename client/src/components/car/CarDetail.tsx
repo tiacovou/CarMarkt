@@ -51,6 +51,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  Eye,
 } from "lucide-react";
 
 interface CarDetailProps {
@@ -416,9 +417,19 @@ export default function CarDetail({ carId }: CarDetailProps) {
               </div>
             </div>
             
-            <div className="flex items-center text-gray-600 mb-6">
+            <div className="flex items-center text-gray-600 mb-2">
               <MapPin className="h-4 w-4 mr-2" />
               <span>{car.location}</span>
+            </div>
+            
+            <div className="flex items-center text-gray-600 mb-2">
+              <Calendar className="h-4 w-4 mr-2" />
+              <span>Listed on {car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+            </div>
+            
+            <div className="flex items-center text-gray-600 mb-6">
+              <Eye className="h-4 w-4 mr-2" />
+              <span>{car.viewCount} views</span>
             </div>
             
             <div className="flex flex-col space-y-3">

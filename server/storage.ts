@@ -38,6 +38,7 @@ export interface IStorage {
   markCarAsSold(id: number): Promise<Car | undefined>;
   markCarAsAvailable(id: number): Promise<Car | undefined>;
   renewCarListing(id: number): Promise<Car | undefined>;
+  incrementViewCount(id: number): Promise<Car | undefined>;
   cleanupExpiredListings(): Promise<void>;
   hardDeleteCar(carId: number): Promise<void>;
   createExpiredTestCar(userId: number): Promise<Car>;
@@ -187,6 +188,7 @@ export class MemStorage implements IStorage {
     oneMonthAgo.setDate(oneMonthAgo.getDate() - 1);
     
     car.expiresAt = oneMonthAgo;
+    car.viewCount = Math.floor(Math.random() * 50); // Random view count for test car
     this.cars.set(car.id, car);
     
     return car;
@@ -367,6 +369,7 @@ export class MemStorage implements IStorage {
       userId, 
       isActive: true, 
       isSold: false,
+      viewCount: 0,
       createdAt,
       expiresAt,
       fuelType: car.fuelType || null,
@@ -424,6 +427,15 @@ export class MemStorage implements IStorage {
     expiresAt.setMonth(expiresAt.getMonth() + 1);
     
     const updatedCar = { ...car, expiresAt };
+    this.cars.set(id, updatedCar);
+    return updatedCar;
+  }
+  
+  async incrementViewCount(id: number): Promise<Car | undefined> {
+    const car = this.cars.get(id);
+    if (!car) return undefined;
+    
+    const updatedCar = { ...car, viewCount: (car.viewCount || 0) + 1 };
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
