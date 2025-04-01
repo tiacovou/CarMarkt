@@ -13,18 +13,22 @@ async function setupTestData() {
       password: 'password123',
       name: 'John Seller',
       email: 'john@example.com',
-      phone: '+35799112233',
-      phoneVerified: true
+      phone: '+35799112233'
     });
+    
+    // Manually verify the phone number
+    await storage.verifyPhone(user1.id, "1234");
     
     const user2 = await createTestUser({
       username: 'buyer1',
       password: 'password123',
       name: 'Maria Buyer',
       email: 'maria@example.com',
-      phone: '+35799445566',
-      phoneVerified: true
+      phone: '+35799445566'
     });
+    
+    // Manually verify the phone number
+    await storage.verifyPhone(user2.id, "1234");
     
     console.log(`Created users: ${user1.username} (ID: ${user1.id}) and ${user2.username} (ID: ${user2.id})`);
     

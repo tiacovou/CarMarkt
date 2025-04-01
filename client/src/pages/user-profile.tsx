@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import SubscriptionForm from "@/components/subscribe/SubscriptionForm";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -365,16 +365,15 @@ export default function UserProfile() {
   const handleSaveChanges = () => {
     if (!user) return;
     
-    const data: any = {
-      // Always include name to satisfy the backend requirement
-      name: user.name
-    };
+    const data: any = {};
     
     if (editMode === 'name') {
       data.name = editedName;
     } else if (editMode === 'email') {
+      data.name = user.name;  // Required by backend
       data.email = editedEmail;
     } else if (editMode === 'phone') {
+      data.name = user.name;  // Required by backend
       data.phone = editedPhone;
     }
     
@@ -601,35 +600,32 @@ export default function UserProfile() {
                     </div>
                     
                     <div className="pt-4">
-                      <h3 className="text-lg font-medium mb-2">Premium Status</h3>
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-medium">Premium Status</h3>
+                        {user.isPremium ? (
+                          <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
+                        ) : (
+                          <Badge variant="outline">Inactive</Badge>
+                        )}
+                      </div>
                       <div className="bg-gray-50 p-4 rounded-lg border mb-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <div>
-                            <p className="font-medium">Premium Status</p>
-                            <p className="text-sm text-gray-500">Unlimited car listings with premium access</p>
-                          </div>
-                          {user.isPremium ? (
-                            <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
-                          ) : (
-                            <Badge variant="outline">Inactive</Badge>
-                          )}
-                        </div>
-                        
-                        {!user.isPremium && (
-                          <>
-                            <div className="mb-3">
-                              <div className="flex justify-between text-sm mb-1">
-                                <span>Free listings used</span>
-                                <span className="font-medium">{user.freeListingsUsed} / 5</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-primary h-2 rounded-full" 
-                                  style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
-                                ></div>
-                              </div>
+                        {user.isPremium ? (
+                          <p className="text-sm text-gray-700 mb-2">
+                            Your premium subscription is active. Enjoy unlimited car listings!
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-700">
+                              You have used <span className="font-semibold">{user.freeListingsUsed}</span> of your <span className="font-semibold">5</span> free listings.
+                            </p>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
+                              ></div>
                             </div>
                             <Button 
+                              variant="default"
                               className="w-full" 
                               onClick={() => upgradeMutation.mutate()}
                               disabled={upgradeMutation.isPending}
@@ -637,20 +633,16 @@ export default function UserProfile() {
                               {upgradeMutation.isPending ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Processing Payment...
+                                  Processing...
                                 </>
                               ) : (
                                 <>
                                   <CreditCard className="mr-2 h-4 w-4" />
-                                  Upgrade to Premium - €5.00/month
+                                  Get Premium - €5.00/month
                                 </>
                               )}
                             </Button>
-                          </>
-                        )}
-                        
-                        {user.isPremium && (
-                          <p className="text-sm text-gray-500">You have unlimited car listings with your premium subscription.</p>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -907,70 +899,87 @@ export default function UserProfile() {
                 {/* Subscription Status Card */}
                 <Card className="md:col-span-1">
                   <CardHeader>
-                    <CardTitle>Subscription Status</CardTitle>
-                    <CardDescription>Your current plan and benefits</CardDescription>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>Subscription</CardTitle>
+                        <CardDescription>Your current plan status</CardDescription>
+                      </div>
+                      {user.isPremium ? (
+                        <Badge className="bg-green-500">Premium</Badge>
+                      ) : (
+                        <Badge variant="outline">Free</Badge>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {user.isPremium ? (
                       <div className="space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <Badge className="bg-green-500">Active</Badge>
-                          <span className="font-medium">Premium Plan</span>
-                        </div>
-                        
                         <div className="rounded-lg border bg-card p-4">
-                          <h3 className="font-medium mb-2">Your Benefits:</h3>
-                          <ul className="space-y-2">
-                            <li className="flex items-center">
-                              <Check className="h-4 w-4 mr-2 text-green-500" />
-                              <span>Unlimited car listings</span>
-                            </li>
-                            <li className="flex items-center">
-                              <Check className="h-4 w-4 mr-2 text-green-500" />
-                              <span>Priority customer support</span>
-                            </li>
-                            <li className="flex items-center">
-                              <Check className="h-4 w-4 mr-2 text-green-500" />
-                              <span>No per-listing fees</span>
-                            </li>
-                          </ul>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-500">Price</span>
+                              <span className="font-medium">€5.00/month</span>
+                            </div>
+                            <Separator />
+                            <h4 className="font-medium text-sm mb-2">Your benefits:</h4>
+                            <ul className="space-y-2 text-sm">
+                              <li className="flex items-center">
+                                <Check className="h-4 w-4 mr-2 text-green-500" />
+                                <span>Unlimited listings</span>
+                              </li>
+                              <li className="flex items-center">
+                                <Check className="h-4 w-4 mr-2 text-green-500" />
+                                <span>No per-listing fees</span>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                         
-                        <div className="pt-2">
-                          <p className="text-sm text-muted-foreground mb-4">Your subscription automatically renews at €5.00/month.</p>
-                          <Button variant="outline" className="w-full">
-                            Manage Subscription
-                          </Button>
-                        </div>
+                        <Button variant="outline" className="w-full">
+                          Manage Subscription
+                        </Button>
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline">Free Plan</Badge>
-                          <span className="font-medium">Basic Account</span>
-                        </div>
-                        
                         <div className="rounded-lg border bg-card p-4">
-                          <h3 className="font-medium mb-2">Current Limitations:</h3>
-                          <ul className="space-y-2">
-                            <li className="flex items-center">
-                              <Check className="h-4 w-4 mr-2 text-green-500" />
-                              <span>5 free car listings</span>
-                            </li>
-                            <li className="flex items-center">
-                              <X className="h-4 w-4 mr-2 text-red-500" />
-                              <span>€1 fee per additional listing</span>
-                            </li>
-                            <li className="flex items-center">
-                              <X className="h-4 w-4 mr-2 text-red-500" />
-                              <span>Standard support</span>
-                            </li>
-                          </ul>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-500">Free Listings</span>
+                              <span className="font-medium">{user.freeListingsUsed} / 5 used</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ width: `${Math.min(100, (user.freeListingsUsed / 5) * 100)}%` }}
+                              ></div>
+                            </div>
+                            <div className="pt-1 text-sm">
+                              <p>€1.00 fee per additional listing</p>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">Upgrade to Premium for unlimited listings!</p>
-                          <SubscriptionForm />
+                        <div className="rounded-lg border border-primary bg-primary/5 p-4">
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-sm">Get unlimited listings:</h4>
+                            <Button 
+                              className="w-full" 
+                              onClick={() => upgradeMutation.mutate()}
+                              disabled={upgradeMutation.isPending}
+                            >
+                              {upgradeMutation.isPending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="mr-2 h-4 w-4" />
+                                  Upgrade - €5.00/month
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
