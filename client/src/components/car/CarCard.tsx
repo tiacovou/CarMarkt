@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Car as OriginalCarType, Favorite } from "@shared/schema";
-import { Heart, Gauge, Fuel, Car as CarIcon, User, ArrowRight } from "lucide-react";
+import { Heart, Gauge, Fuel, Car as CarIcon, User, ArrowRight, Eye, Calendar } from "lucide-react";
 
 // Extended car type with primary image URL
 type CarType = OriginalCarType & {
@@ -115,6 +115,17 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
             </span>
           </div>
           
+          <div className="flex justify-between items-center mb-1.5">
+            <div className="flex items-center text-gray-500 text-xs">
+              <Calendar className="h-3 w-3 mr-0.5" />
+              <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+            </div>
+            <div className="flex items-center text-gray-500 text-xs">
+              <Eye className="h-3 w-3 mr-0.5" />
+              <span>{car.viewCount || 0}</span>
+            </div>
+          </div>
+          
           <Link href={`/cars/${car.id}`}>
             <a className="text-primary text-sm font-semibold hover:text-primary/90 transition flex items-center">
               View Details <ArrowRight className="ml-1 h-3.5 w-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
@@ -192,6 +203,17 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
       </div>
       
       <div className="border-t border-gray-200 p-4 md:p-5">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center text-gray-500 text-sm">
+            <Calendar className="h-3.5 w-3.5 mr-1" />
+            <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+          </div>
+          <div className="flex items-center text-gray-500 text-sm">
+            <Eye className="h-3.5 w-3.5 mr-1" />
+            <span>{car.viewCount || 0} views</span>
+          </div>
+        </div>
+        
         <Link href={`/cars/${car.id}`}>
           <Button variant="link" className="text-primary font-semibold p-0 h-auto text-base md:text-lg flex items-center group-hover:underline">
             View Details

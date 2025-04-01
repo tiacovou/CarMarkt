@@ -17,7 +17,7 @@ import { Car as OriginalCarType } from "@shared/schema";
 import { 
   Heart, Gauge, Fuel, Car as CarIcon, User, ArrowRight, 
   TagIcon, BadgeCheck, RefreshCw, Clock, AlertTriangle, 
-  CreditCard
+  CreditCard, Eye, Calendar
 } from "lucide-react";
 
 // Extended car type with primary image URL
@@ -232,53 +232,66 @@ export default function UserCarCard({ car }: UserCarCardProps) {
           </div>
         </div>
         
-        <div className="border-t border-gray-200 p-4 md:p-5 flex justify-between items-center">
-          <Link href={`/cars/${car.id}`}>
-            <Button variant="link" className="text-primary font-semibold p-0 h-auto text-base flex items-center">
-              View Details
-              <ArrowRight className="ml-1 h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-            </Button>
-          </Link>
+        <div className="border-t border-gray-200 p-4 md:p-5">
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center text-gray-500 text-sm">
+              <Calendar className="h-3.5 w-3.5 mr-1" />
+              <span>{car.createdAt ? new Date(car.createdAt).toLocaleDateString() : 'N/A'}</span>
+            </div>
+            <div className="flex items-center text-gray-500 text-sm">
+              <Eye className="h-3.5 w-3.5 mr-1" />
+              <span>{car.viewCount || 0} views</span>
+            </div>
+          </div>
           
-          <div className="flex flex-wrap gap-2">
-            {/* Renewal button for expired or expiring soon listings */}
-            {!car.isSold && (isExpired || (car.expiresAt && new Date(car.expiresAt).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000)) && (
-              <Button 
-                onClick={handleRenewListing} 
-                variant="outline" 
-                size="sm" 
-                className="text-blue-700 border-blue-200 hover:bg-blue-50 hover:text-blue-800"
-                disabled={renewListingMutation.isPending}
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                {renewListingMutation.isPending ? "Renewing..." : "Renew Listing"}
+          <div className="flex justify-between items-center">
+            <Link href={`/cars/${car.id}`}>
+              <Button variant="link" className="text-primary font-semibold p-0 h-auto text-base flex items-center">
+                View Details
+                <ArrowRight className="ml-1 h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Button>
-            )}
-            
-            {/* Mark as sold/available button */}
-            {!car.isSold ? (
-              <Button 
-                onClick={handleMarkAsSold} 
-                variant="outline" 
-                size="sm" 
-                className="text-green-700 border-green-200 hover:bg-green-50 hover:text-green-800"
-                disabled={markAsSoldMutation.isPending}
-              >
-                <TagIcon className="h-4 w-4 mr-1" />
-                {markAsSoldMutation.isPending ? "Marking as sold..." : "Mark as Sold"}
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleMarkAsAvailable} 
-                variant="outline" 
-                size="sm" 
-                className="text-amber-700 border-amber-200 hover:bg-amber-50 hover:text-amber-800"
-                disabled={markAsAvailableMutation.isPending}
-              >
-                <TagIcon className="h-4 w-4 mr-1" />
-                {markAsAvailableMutation.isPending ? "Marking as available..." : "Mark as Available"}
-              </Button>
-            )}
+            </Link>
+          
+            <div className="flex flex-wrap gap-2">
+              {/* Renewal button for expired or expiring soon listings */}
+              {!car.isSold && (isExpired || (car.expiresAt && new Date(car.expiresAt).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000)) && (
+                <Button 
+                  onClick={handleRenewListing} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-blue-700 border-blue-200 hover:bg-blue-50 hover:text-blue-800"
+                  disabled={renewListingMutation.isPending}
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  {renewListingMutation.isPending ? "Renewing..." : "Renew Listing"}
+                </Button>
+              )}
+              
+              {/* Mark as sold/available button */}
+              {!car.isSold ? (
+                <Button 
+                  onClick={handleMarkAsSold} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-green-700 border-green-200 hover:bg-green-50 hover:text-green-800"
+                  disabled={markAsSoldMutation.isPending}
+                >
+                  <TagIcon className="h-4 w-4 mr-1" />
+                  {markAsSoldMutation.isPending ? "Marking as sold..." : "Mark as Sold"}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleMarkAsAvailable} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-amber-700 border-amber-200 hover:bg-amber-50 hover:text-amber-800"
+                  disabled={markAsAvailableMutation.isPending}
+                >
+                  <TagIcon className="h-4 w-4 mr-1" />
+                  {markAsAvailableMutation.isPending ? "Marking as available..." : "Mark as Available"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

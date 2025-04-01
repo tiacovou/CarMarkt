@@ -151,17 +151,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/cars/:id", async (req, res, next) => {
     try {
-      const car = await storage.getCar(parseInt(req.params.id));
+      const carId = parseInt(req.params.id);
+      const car = await storage.getCar(carId);
       if (!car) {
         return res.status(404).json({ message: "Car not found" });
+      }
+      
+      // Increment view count (if not owner viewing their own car)
+      if (!req.isAuthenticated() || req.user.id !== car.userId) {
+        await storage.incrementViewCount(carId);
       }
       
       // Get primary image
       const images = await storage.getCarImages(car.id);
       const primaryImage = images.find(img => img.isPrimary);
       
+      // Get updated car with new view count
+      const updatedCar = await storage.getCar(carId);
+      
       res.json({
-        ...car,
+        ...updatedCar,
         primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
       });
     } catch (error) {
