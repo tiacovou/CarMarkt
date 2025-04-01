@@ -11,8 +11,8 @@ async function createExpiredListing() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username: 'admin',
-        password: 'admin123',
+        username: 'seller1',
+        password: 'password123',
       }),
     });
 

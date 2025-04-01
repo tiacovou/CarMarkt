@@ -70,7 +70,13 @@ export default function UserProfile() {
   });
   
   // Fetch premium info and payments
-  const { data: premiumInfo, isLoading: isLoadingPremium } = useQuery({
+  const { data: premiumInfo, isLoading: isLoadingPremium } = useQuery<{
+    isPremium: boolean;
+    freeListingsUsed: number;
+    freeListingsRemaining: number;
+    activeListings: number;
+    requiresPayment: boolean;
+  }>({
     queryKey: ["/api/user/premium-info"],
     enabled: !!user,
   });
@@ -682,8 +688,36 @@ export default function UserProfile() {
             
             {/* Listings Tab */}
             <TabsContent value="listings">
-              <div className="mb-6">
+              <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">My Car Listings</h2>
+                <div className="flex gap-2">
+                  {user && premiumInfo?.activeListings !== undefined && (
+                    premiumInfo.freeListingsRemaining > 0 || user.isPremium ? (
+                      <Link href="/sell">
+                        <Button className="flex items-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          Create Listing
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href="/checkout">
+                        <Button className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          Pay for Listing (€1)
+                        </Button>
+                      </Link>
+                    )
+                  )}
+                  
+                  {user && !user.isPremium && (
+                    <Link href="/subscribe">
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <Check className="h-4 w-4" />
+                        Go Premium
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
               
               {isLoadingCars ? (
