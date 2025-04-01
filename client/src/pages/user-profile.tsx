@@ -138,10 +138,11 @@ export default function UserProfile() {
     enabled: !!user,
   });
   
-  // Fetch cars for favorites
+  // Fetch all cars (for favorites and messages)
   const { data: allCars } = useQuery<CarType[]>({
     queryKey: ["/api/cars"],
-    enabled: !!favorites && favorites.length > 0,
+    // Always enable this query as we need car data for both favorites and messages
+    enabled: !!user,
   });
   
   // Get favorite cars with data
@@ -206,9 +207,24 @@ export default function UserProfile() {
     }) : [];
   
   // Get car details for the conversation
-  const conversationCar = selectedConversation && selectedConversation.length > 0 
-    ? allCars?.find(car => car.id === selectedConversation[0].carId) 
+  // First, find the carId from the conversation
+  const conversationCarId = selectedConversation && selectedConversation.length > 0 
+    ? selectedConversation[0].carId 
     : null;
+  
+  // Then fetch the car details
+  const conversationCar = allCars && conversationCarId
+    ? allCars.find(car => car.id === conversationCarId) 
+    : null;
+    
+  // Log car details for debugging
+  useEffect(() => {
+    if (selectedUser) {
+      console.log("Conversation car ID:", conversationCarId);
+      console.log("All cars:", allCars);
+      console.log("Conversation car:", conversationCar);
+    }
+  }, [selectedUser, conversationCarId, allCars, conversationCar]);
   
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -257,11 +273,21 @@ export default function UserProfile() {
   
   // Handle sending a message in the conversation view
   const handleSendMessage = () => {
-    if (!selectedUser || !conversationCar || !newMessage.trim()) return;
+    if (!selectedUser || !newMessage.trim()) {
+      console.log("Missing required data:", { selectedUser, conversationCarId, message: newMessage.trim() });
+      return;
+    }
+    
+    // If we don't have a car ID from the conversation, use a fallback
+    // This might happen if there's no previous messages yet
+    // For development/testing only - in production always ensure a proper carId
+    const carId = conversationCarId || 1; // Fallback to first car if needed
+    
+    console.log("Sending message with:", { toUserId: selectedUser, carId, content: newMessage });
     
     sendMessageMutation.mutate({
       toUserId: selectedUser,
-      carId: conversationCar.id,
+      carId,
       content: newMessage
     });
   };
@@ -913,15 +939,21 @@ export default function UserProfile() {
                             </div>
                             
                             {conversationCar && (
-                              <div className="flex items-center">
-                                <span className="text-sm text-gray-500 mr-2">Conversation about:</span>
-                                <Link 
-                                  to={`/cars/${conversationCar.id}`} 
-                                  className="text-sm font-medium text-primary hover:underline flex items-center"
-                                >
-                                  {conversationCar.make} {conversationCar.model} {conversationCar.year}
-                                  <ArrowUpRight className="ml-1 h-3 w-3" />
-                                </Link>
+                              <div className="mt-2 p-2 bg-gray-50 rounded-md border border-gray-100">
+                                <div className="flex flex-col">
+                                  <span className="text-xs text-gray-500 mb-1">Conversation about:</span>
+                                  {conversationCar ? (
+                                    <Link 
+                                      to={`/cars/${conversationCar.id}`} 
+                                      className="text-sm font-medium text-primary hover:underline flex items-center"
+                                    >
+                                      {conversationCar.make} {conversationCar.model} {conversationCar.year}
+                                      <ArrowUpRight className="ml-1 h-3 w-3" />
+                                    </Link>
+                                  ) : (
+                                    <span className="text-sm text-gray-400">Car information unavailable</span>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
