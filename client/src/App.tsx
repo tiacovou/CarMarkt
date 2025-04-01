@@ -16,6 +16,8 @@ import HowItWorksPage from "@/pages/how-it-works-page";
 import Payment from "@/pages/payment";
 import Subscribe from "@/pages/subscribe";
 import Checkout from "@/pages/checkout";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfService from "@/pages/terms-of-service";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/browse" component={BrowseCars} />
       <Route path="/cars/:id" component={CarDetail} />
       <Route path="/how-it-works" component={HowItWorksPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/terms-of-service" component={TermsOfService} />
       <ProtectedRoute path="/sell" component={SellCar} />
       <ProtectedRoute path="/profile" component={UserProfile} />
       <ProtectedRoute path="/payment" component={Payment} />
