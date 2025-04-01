@@ -83,6 +83,13 @@ const carMakesAndModels: Record<string, string[]> = {
 
 const carMakes = Object.keys(carMakesAndModels);
 
+// Cyprus towns/cities
+const cyprusTowns = [
+  "Nicosia", "Limassol", "Larnaca", "Paphos", "Famagusta",
+  "Kyrenia", "Morphou", "Paralimni", "Ayia Napa", "Protaras",
+  "Polis", "Peyia", "Pachna", "Pissouri", "Lefkara", "Omodos"
+];
+
 const fuelTypes = [
   "Gasoline", "Diesel", "Hybrid", "Electric", "Plug-in Hybrid"
 ];
@@ -535,9 +542,22 @@ export default function SimpleMultiStepCarForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Nicosia, Limassol" {...field} />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {cyprusTowns.map((town) => (
+                          <SelectItem key={town} value={town}>{town}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -608,7 +628,7 @@ export default function SimpleMultiStepCarForm() {
             <div>
               <FormLabel>Car Images (Required)</FormLabel>
               <FormDescription>
-                Upload clear photos of your car. At least one image is required. The first image will be the main photo shown in listings.
+                Upload clear photos of your car (maximum 5 images). At least one image is required. The first image will be the main photo shown in listings.
               </FormDescription>
             </div>
             
@@ -660,7 +680,7 @@ export default function SimpleMultiStepCarForm() {
               ))}
               
               {/* Upload button */}
-              {images.length < 10 && (
+              {images.length < 5 && (
                 <label className="border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 aspect-square">
                   <Upload className="h-8 w-8 text-gray-400 mb-2" />
                   <span className="text-sm text-gray-500">Upload</span>
