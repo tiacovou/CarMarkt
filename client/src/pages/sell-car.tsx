@@ -1,6 +1,6 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import MultiStepCarForm from "@/components/car/MultiStepCarForm";
+import SimpleMultiStepCarForm from "@/components/car/SimpleMultiStepCarForm";
 
 export default function SellCar() {
   return (
@@ -13,7 +13,7 @@ export default function SellCar() {
             Create a detailed listing to attract potential buyers
           </p>
           
-          <MultiStepCarForm />
+          <SimpleMultiStepCarForm />
         </div>
       </main>
       <Footer />
