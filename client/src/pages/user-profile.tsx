@@ -570,8 +570,8 @@ export default function UserProfile() {
                             className="bg-gray-50"
                             placeholder="+35712345678"
                           />
-                          <div className="flex items-center justify-center ml-2 w-10 h-10">
-                            <span className="text-gray-400 text-xs">Locked</span>
+                          <div className="ml-2 bg-gray-100 px-2 py-1 rounded text-gray-500 text-xs">
+                            Locked
                           </div>
                         </div>
                       </div>
