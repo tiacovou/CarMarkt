@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import PhoneVerification from "@/components/user/PhoneVerification";
 import SubscriptionForm from "@/components/subscribe/SubscriptionForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -33,9 +32,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import CarCard from "@/components/car/CarCard";
-import { Loader2, User, Mail, Phone, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X } from "lucide-react";
+import { Loader2, User as UserIcon, Mail, Phone as PhoneIcon, LogOut, Edit, Car, Heart, MessageSquare, Plus, CreditCard, Lock, Check, X } from "lucide-react";
 import { Link } from "wouter";
-import { Car as CarType, Favorite, Message, Payment } from "@shared/schema";
+import { Car as CarType, Favorite, Message, Payment, User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -259,26 +258,17 @@ export default function UserProfile() {
       }));
       
       // Check if phone number was changed
-      const currentUser = queryClient.getQueryData<typeof User>(["/api/user"]);
+      const currentUser = queryClient.getQueryData<User>(["/api/user"]);
       if (variables.phone && currentUser && variables.phone !== currentUser.phone) {
         // Invalidate the verification status
         queryClient.invalidateQueries({queryKey: ["/api/user/verify-phone/status"]});
         
-        // Show toast notification about verification
+        // Show toast notification about phone number update
         toast({
           title: "Phone number updated",
-          description: "Please verify your new phone number in the Phone Verification section below",
-          variant: "destructive",
-          duration: 10000,
+          description: "Your phone number has been updated successfully",
+          variant: "default",
         });
-        
-        // Scroll to verification section after a brief delay
-        setTimeout(() => {
-          const verificationSection = document.getElementById("phone-verification-section");
-          if (verificationSection) {
-            verificationSection.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 500);
       }
       
       // Reset edit mode
@@ -363,7 +353,7 @@ export default function UserProfile() {
           <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
               <TabsTrigger value="profile" className="flex gap-2">
-                <User className="h-4 w-4" /> Profile
+                <UserIcon className="h-4 w-4" /> Profile
               </TabsTrigger>
               <TabsTrigger value="listings" className="flex gap-2">
                 <Car className="h-4 w-4" /> My Listings
@@ -551,12 +541,6 @@ export default function UserProfile() {
                           )}
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Phone Verification */}
-                    <div className="pt-4" id="phone-verification-section">
-                      <h3 className="text-lg font-medium mb-2">Phone Verification</h3>
-                      <PhoneVerification />
                     </div>
                     
                     <div className="pt-4">
@@ -879,7 +863,7 @@ export default function UserProfile() {
                           <div className="flex items-start space-x-4">
                             <Avatar className="mt-1">
                               <AvatarFallback className="bg-gray-200 text-gray-700">
-                                <User className="h-4 w-4" />
+                                <UserIcon className="h-4 w-4" />
                               </AvatarFallback>
                             </Avatar>
                             <div>
