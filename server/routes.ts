@@ -91,7 +91,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cars", async (req, res, next) => {
     try {
       const cars = await storage.getCars();
-      res.json(cars);
+      
+      // Fetch primary image for each car
+      const carsWithImages = await Promise.all(cars.map(async (car) => {
+        const images = await storage.getCarImages(car.id);
+        const primaryImage = images.find(img => img.isPrimary);
+        return {
+          ...car,
+          primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
+        };
+      }));
+      
+      res.json(carsWithImages);
     } catch (error) {
       next(error);
     }
@@ -114,7 +125,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate search params
       const validatedSearch = carSearchSchema.parse(search);
       const cars = await storage.searchCars(validatedSearch);
-      res.json(cars);
+      
+      // Fetch primary image for each car
+      const carsWithImages = await Promise.all(cars.map(async (car) => {
+        const images = await storage.getCarImages(car.id);
+        const primaryImage = images.find(img => img.isPrimary);
+        return {
+          ...car,
+          primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
+        };
+      }));
+      
+      res.json(carsWithImages);
     } catch (error) {
       next(error);
     }
@@ -126,7 +148,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!car) {
         return res.status(404).json({ message: "Car not found" });
       }
-      res.json(car);
+      
+      // Get primary image
+      const images = await storage.getCarImages(car.id);
+      const primaryImage = images.find(img => img.isPrimary);
+      
+      res.json({
+        ...car,
+        primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
+      });
     } catch (error) {
       next(error);
     }
@@ -294,7 +324,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/cars", checkAuth, async (req, res, next) => {
     try {
       const cars = await storage.getCarsByUser(req.user.id);
-      res.json(cars);
+      
+      // Fetch primary image for each car
+      const carsWithImages = await Promise.all(cars.map(async (car) => {
+        const images = await storage.getCarImages(car.id);
+        const primaryImage = images.find(img => img.isPrimary);
+        return {
+          ...car,
+          primaryImageUrl: primaryImage ? primaryImage.imageUrl : null
+        };
+      }));
+      
+      res.json(carsWithImages);
     } catch (error) {
       next(error);
     }

@@ -5,8 +5,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Car as CarType, Favorite } from "@shared/schema";
+import { Car as OriginalCarType, Favorite } from "@shared/schema";
 import { Heart, Gauge, Fuel, Car as CarIcon, User, ArrowRight } from "lucide-react";
+
+// Extended car type with primary image URL
+type CarType = OriginalCarType & {
+  primaryImageUrl?: string | null;
+};
 
 interface CarCardProps {
   car: CarType;
@@ -71,7 +76,7 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
       <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition group">
         <div className="relative pb-[65%]">
           <img 
-            src={`/uploads/default-car.jpg`} // This would be replaced with actual car image
+            src={car.primaryImageUrl || `/uploads/default-car.jpg`}
             alt={`${car.year} ${car.make} ${car.model}`} 
             className="absolute h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" 
           />
@@ -119,7 +124,7 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition group">
       <div className="relative pb-[60%]">
         <img 
-          src={`/uploads/default-car.jpg`} // This would be replaced with actual car image
+          src={car.primaryImageUrl || `/uploads/default-car.jpg`}
           alt={`${car.year} ${car.make} ${car.model}`} 
           className="absolute h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" 
         />
