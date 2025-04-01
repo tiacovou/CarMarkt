@@ -366,6 +366,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get unread messages count
+  app.get("/api/user/messages/unread/count", checkAuth, async (req, res, next) => {
+    try {
+      const messages = await storage.getMessages(req.user.id);
+      const unreadCount = messages.filter(m => !m.isRead && m.toUserId === req.user.id).length;
+      res.json(unreadCount);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   app.get("/api/cars/:carId/messages/:userId", checkAuth, async (req, res, next) => {
     try {
       const carId = parseInt(req.params.carId);
