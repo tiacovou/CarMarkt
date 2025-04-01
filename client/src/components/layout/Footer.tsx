@@ -18,9 +18,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-10 mb-8">
           {/* Company Info */}
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <span className="text-xl font-bold">CarMarkt</span>
-              <Car className="h-5 w-5" />
+            <div className="flex items-center mb-4">
+              <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-10" />
             </div>
             <p className="text-gray-600 mb-6">
               The trusted marketplace for buying and selling cars. Connect with buyers and sellers in your area.
