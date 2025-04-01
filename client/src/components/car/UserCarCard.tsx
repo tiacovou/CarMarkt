@@ -43,8 +43,34 @@ export default function UserCarCard({ car }: UserCarCardProps) {
     }
   });
   
+  // Mark car as available mutation
+  const markAsAvailableMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/cars/${car.id}/unsold`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/cars"] });
+      toast({
+        title: "Car marked as available",
+        description: "Your car has been marked as available successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   const handleMarkAsSold = () => {
     markAsSoldMutation.mutate();
+  };
+  
+  const handleMarkAsAvailable = () => {
+    markAsAvailableMutation.mutate();
   };
   
   return (
@@ -103,7 +129,7 @@ export default function UserCarCard({ car }: UserCarCardProps) {
           </Button>
         </Link>
         
-        {!car.isSold && (
+        {!car.isSold ? (
           <Button 
             onClick={handleMarkAsSold} 
             variant="outline" 
@@ -113,6 +139,17 @@ export default function UserCarCard({ car }: UserCarCardProps) {
           >
             <TagIcon className="h-4 w-4 mr-1" />
             {markAsSoldMutation.isPending ? "Marking as sold..." : "Mark as Sold"}
+          </Button>
+        ) : (
+          <Button 
+            onClick={handleMarkAsAvailable} 
+            variant="outline" 
+            size="sm" 
+            className="text-amber-700 border-amber-200 hover:bg-amber-50 hover:text-amber-800"
+            disabled={markAsAvailableMutation.isPending}
+          >
+            <TagIcon className="h-4 w-4 mr-1" />
+            {markAsAvailableMutation.isPending ? "Marking as available..." : "Mark as Available"}
           </Button>
         )}
       </div>
