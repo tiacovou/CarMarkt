@@ -387,6 +387,11 @@ export default function CarDetail({ carId }: CarDetailProps) {
                   {car.transmission}
                 </Badge>
               )}
+              {car.isSold && (
+                <Badge className="bg-red-500 hover:bg-red-500 text-white">
+                  SOLD
+                </Badge>
+              )}
             </div>
             
             <div className="border-t border-b py-4 my-4">
@@ -406,9 +411,13 @@ export default function CarDetail({ carId }: CarDetailProps) {
               {user && user.id !== car.userId && (
                 <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full" 
+                      disabled={car.isSold}
+                      title={car.isSold ? "This car has been sold" : undefined}
+                    >
                       <Mail className="h-4 w-4 mr-2" />
-                      Contact Seller
+                      {car.isSold ? "Car Sold" : "Contact Seller"}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>

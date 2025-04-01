@@ -90,6 +90,11 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
               <Heart className={isFavorite ? 'fill-current' : ''} size={16} />
             </Button>
           </div>
+          {car.isSold && (
+            <div className="absolute top-3 left-3">
+              <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">SOLD</span>
+            </div>
+          )}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent py-2 px-3">
             <span className="text-white font-semibold text-lg">€{car.price.toLocaleString()}</span>
           </div>
@@ -138,6 +143,11 @@ export default function CarCard({ car, favorite, featured = false, compact = fal
             <Heart className={isFavorite ? 'fill-current' : ''} />
           </Button>
         </div>
+        {car.isSold && (
+          <div className="absolute top-4 left-4">
+            <span className="bg-red-500 text-white text-sm font-bold px-4 py-1 rounded-full">SOLD</span>
+          </div>
+        )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent py-3 px-4">
           <span className="text-white font-semibold text-xl md:text-2xl">€{car.price.toLocaleString()}</span>
         </div>
