@@ -504,9 +504,46 @@ export default function SimpleMultiStepCarForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Color</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select color" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Black">Black</SelectItem>
+                        <SelectItem value="White">White</SelectItem>
+                        <SelectItem value="Silver">Silver</SelectItem>
+                        <SelectItem value="Gray">Gray</SelectItem>
+                        <SelectItem value="Blue">Blue</SelectItem>
+                        <SelectItem value="Dark Blue">Dark Blue</SelectItem>
+                        <SelectItem value="Light Blue">Light Blue</SelectItem>
+                        <SelectItem value="Red">Red</SelectItem>
+                        <SelectItem value="Green">Green</SelectItem>
+                        <SelectItem value="Dark Green">Dark Green</SelectItem>
+                        <SelectItem value="Yellow">Yellow</SelectItem>
+                        <SelectItem value="Orange">Orange</SelectItem>
+                        <SelectItem value="Brown">Brown</SelectItem>
+                        <SelectItem value="Purple">Purple</SelectItem>
+                        <SelectItem value="Gold">Gold</SelectItem>
+                        <SelectItem value="Beige">Beige</SelectItem>
+                        <SelectItem value="Champagne">Champagne</SelectItem>
+                        <SelectItem value="Bronze">Bronze</SelectItem>
+                        <SelectItem value="Burgundy">Burgundy</SelectItem>
+                        <SelectItem value="Cream">Cream</SelectItem>
+                        <SelectItem value="Charcoal">Charcoal</SelectItem>
+                        <SelectItem value="Copper">Copper</SelectItem>
+                        <SelectItem value="Navy">Navy</SelectItem>
+                        <SelectItem value="Maroon">Maroon</SelectItem>
+                        <SelectItem value="Tan">Tan</SelectItem>
+                        <SelectItem value="Turquoise">Turquoise</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
