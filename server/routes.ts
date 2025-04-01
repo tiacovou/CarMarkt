@@ -60,7 +60,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16" as const,
+  apiVersion: "2025-02-24.acacia" as const,
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
