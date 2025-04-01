@@ -78,6 +78,18 @@ export default function UserProfile() {
   const [editedName, setEditedName] = useState('');
   const [editedEmail, setEditedEmail] = useState('');
   const [replyingTo, setReplyingTo] = useState<{messageId: number, toUserId: number, carId: number} | null>(null);
+  
+  // Get URL parameters to set active tab
+  useEffect(() => {
+    // Read URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    
+    // Set active tab if a valid tab is specified in URL
+    if (tabParam && ['profile', 'listings', 'favorites', 'messages'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
   const [replyMessage, setReplyMessage] = useState('');
   const [isAdmin, setIsAdmin] = useState(false); // State to track admin status
   const { toast } = useToast();
@@ -559,7 +571,17 @@ export default function UserProfile() {
             <p className="text-gray-600">Manage your profile, listings, and messages</p>
           </div>
           
-          <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs 
+            defaultValue="profile" 
+            value={activeTab} 
+            onValueChange={(value) => {
+              setActiveTab(value);
+              // Update URL with the selected tab
+              const url = new URL(window.location.href);
+              url.searchParams.set('tab', value);
+              window.history.pushState({}, '', url.toString());
+            }} 
+            className="space-y-6">
             <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
               <TabsTrigger value="profile" className="flex gap-2">
                 <UserIcon className="h-4 w-4" /> Profile
