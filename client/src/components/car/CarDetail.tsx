@@ -234,6 +234,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
                       src={image.imageUrl}
                       alt={`${car.year} ${car.make} ${car.model} - Image ${index + 1}`}
                       className="w-full h-full object-cover"
+                      style={{ pointerEvents: 'none' }}
                     />
                   </AspectRatio>
                 </CarouselItem>
@@ -248,13 +249,14 @@ export default function CarDetail({ carId }: CarDetailProps) {
             {images.slice(0, 5).map((image, index) => (
               <div 
                 key={index} 
-                className="relative rounded-md overflow-hidden border cursor-pointer"
+                className="relative rounded-md overflow-hidden border"
               >
                 <AspectRatio ratio={1 / 1}>
                   <img 
                     src={image.imageUrl}
                     alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover hover:opacity-80 transition"
+                    className="w-full h-full object-cover"
+                    style={{ pointerEvents: 'none' }}
                   />
                 </AspectRatio>
               </div>
@@ -266,7 +268,6 @@ export default function CarDetail({ carId }: CarDetailProps) {
             <Tabs defaultValue="overview">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="features">Features</TabsTrigger>
                 <TabsTrigger value="description">Description</TabsTrigger>
               </TabsList>
               <TabsContent value="overview" className="mt-4">
@@ -316,50 +317,7 @@ export default function CarDetail({ carId }: CarDetailProps) {
                 </div>
               </TabsContent>
               
-              <TabsContent value="features" className="mt-4">
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4">Features</h3>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
-                    <li className="flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Power Windows
-                    </li>
-                    <li className="flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Bluetooth Connectivity
-                    </li>
-                    <li className="flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Navigation System
-                    </li>
-                    <li className="flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Backup Camera
-                    </li>
-                    <li className="flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Keyless Entry
-                    </li>
-                    <li className="flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Heated Seats
-                    </li>
-                  </ul>
-                </div>
-              </TabsContent>
-              
+
               <TabsContent value="description" className="mt-4">
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h3 className="text-lg font-semibold mb-4">Description</h3>
@@ -413,11 +371,11 @@ export default function CarDetail({ carId }: CarDetailProps) {
                   <DialogTrigger asChild>
                     <Button 
                       className="w-full" 
-                      disabled={car.isSold}
-                      title={car.isSold ? "This car has been sold" : undefined}
+                      disabled={!!car?.isSold}
+                      title={car?.isSold ? "This car has been sold" : undefined}
                     >
                       <Mail className="h-4 w-4 mr-2" />
-                      {car.isSold ? "Car Sold" : "Contact Seller"}
+                      {car?.isSold ? "Car Sold" : "Contact Seller"}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
