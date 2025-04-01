@@ -449,7 +449,7 @@ export default function UserProfile() {
           </div>
           
           <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
               <TabsTrigger value="profile" className="flex gap-2">
                 <UserIcon className="h-4 w-4" /> Profile
               </TabsTrigger>
@@ -462,9 +462,11 @@ export default function UserProfile() {
               <TabsTrigger value="messages" className="flex gap-2">
                 <MessageSquare className="h-4 w-4" /> Messages
               </TabsTrigger>
+              {/* Payment tab hidden for now
               <TabsTrigger value="payments" className="flex gap-2">
                 <CreditCard className="h-4 w-4" /> Payments
               </TabsTrigger>
+              */}
             </TabsList>
             
             {/* Profile Tab */}
@@ -806,112 +808,103 @@ export default function UserProfile() {
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : messages && messages.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {messages.map((message) => {
-                    // Group messages by car and other user
-                    const otherUserId = message.fromUserId === user.id ? message.toUserId : message.fromUserId;
-                    const carId = message.carId;
+                    const isIncoming = message.toUserId === user.id;
                     
-                    // We'll use this key to group conversation threads
-                    const conversationKey = `car-${carId}-user-${otherUserId}`;
+                    // Check if message is already read or being processed
+                    const shouldMarkAsRead = isIncoming && !message.isRead && !markAsReadMutation.isPending;
+                    
+                    // Mark incoming message as read when viewed
+                    if (shouldMarkAsRead) {
+                      markAsReadMutation.mutate(message.id);
+                    }
                     
                     return (
-                      <Card 
-                        key={message.id} 
-                        className={`${!message.isRead ? 'border-primary border-l-4' : ''}`}
-                        onClick={() => {
-                          // Mark as read when user clicks on the message
-                          if (!message.isRead && message.toUserId === user.id) {
-                            markAsReadMutation.mutate(message.id);
-                          }
-                        }}
-                      >
+                      <Card key={message.id} className={isIncoming ? "border-l-4 border-l-primary" : ""}>
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-4">
-                              <Avatar className="mt-1">
-                                <AvatarFallback className="bg-gray-200 text-gray-700">
-                                  <UserIcon className="h-4 w-4" />
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="flex items-center mb-1">
-                                  <p className="font-medium">{message.fromUserId === user.id ? 'You' : 'User ' + message.fromUserId}</p>
-                                  <Badge variant="outline" className="ml-2 text-xs">
-                                    {message.fromUserId === user.id ? 'Sent' : 'Received'}
-                                  </Badge>
-                                  {!message.isRead && message.toUserId === user.id && (
-                                    <Badge className="ml-2 text-xs">New</Badge>
-                                  )}
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <Avatar className="h-8 w-8 mr-2">
+                                  <AvatarFallback className="bg-primary/10 text-primary">
+                                    {isIncoming ? message.fromUser.name.charAt(0).toUpperCase() : message.toUser.name.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {isIncoming ? message.fromUser.name : `To: ${message.toUser.name}`}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
+                                    {message.car && ` · About: ${message.car.make} ${message.car.model}`}
+                                  </p>
                                 </div>
-                                <p className="text-gray-600 text-sm mt-1 mb-2">
-                                  {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}
-                                </p>
-                                <p className="text-gray-800">{message.content}</p>
                               </div>
+                              {isIncoming && (
+                                <Badge variant={message.isRead ? "outline" : "default"} className="ml-2">
+                                  {message.isRead ? "Read" : "New"}
+                                </Badge>
+                              )}
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <Link href={`/cars/${message.carId}`}>
-                                <Button variant="outline" size="sm">
-                                  View Car
-                                </Button>
-                              </Link>
-                              {message.fromUserId !== user.id && (
+                            
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              <p className="text-gray-800">{message.content}</p>
+                            </div>
+                            
+                            {isIncoming && (
+                              <div className="flex justify-end">
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Prevent card click handler from firing
-                                    // Show reply form
-                                    setReplyingTo({
-                                      messageId: message.id,
-                                      toUserId: message.fromUserId,
-                                      carId: message.carId
-                                    });
-                                  }}
+                                  onClick={() => setReplyingTo({
+                                    messageId: message.id,
+                                    toUserId: message.fromUser.id,
+                                    carId: message.carId
+                                  })}
                                 >
                                   Reply
                                 </Button>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {replyingTo && replyingTo.messageId === message.id && (
-                            <div className="mt-4 pt-4 border-t">
-                              <div className="flex flex-col space-y-3">
-                                <div className="flex justify-between">
-                                  <h4 className="text-sm font-medium">Reply to this message</h4>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => setReplyingTo(null)}
-                                    className="h-7 w-7 p-0"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <div className="flex space-x-2">
+                              </div>
+                            )}
+                            
+                            {replyingTo?.messageId === message.id && (
+                              <div className="pt-3 border-t mt-2">
+                                <div className="flex flex-col gap-2">
+                                  <p className="text-sm font-medium">Reply to {message.fromUser.name}</p>
                                   <Input
-                                    placeholder="Type your reply..."
                                     value={replyMessage}
                                     onChange={(e) => setReplyMessage(e.target.value)}
-                                    className="flex-1"
+                                    placeholder="Type your reply here..."
+                                    className="w-full"
                                   />
-                                  <Button 
-                                    size="sm"
-                                    disabled={!replyMessage.trim() || sendMessageMutation.isPending}
-                                    onClick={() => handleSendReply()}
-                                  >
-                                    {sendMessageMutation.isPending ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      "Send"
-                                    )}
-                                  </Button>
+                                  <div className="flex justify-end gap-2 mt-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => setReplyingTo(null)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      onClick={handleSendReply}
+                                      disabled={sendMessageMutation.isPending || !replyMessage.trim()}
+                                    >
+                                      {sendMessageMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                          Sending...
+                                        </>
+                                      ) : (
+                                        "Send Reply"
+                                      )}
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     );
@@ -932,201 +925,7 @@ export default function UserProfile() {
               )}
             </TabsContent>
             
-            {/* Payments & Subscription Tab */}
-            <TabsContent value="payments">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Payments & Subscription</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Subscription Status Card */}
-                <Card className="md:col-span-1">
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <CardTitle>Subscription</CardTitle>
-                        <CardDescription>Your current plan status</CardDescription>
-                      </div>
-                      {user.isPremium ? (
-                        <Badge className="bg-green-500">Premium</Badge>
-                      ) : (
-                        <Badge variant="outline">Free</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {user.isPremium ? (
-                      <div className="space-y-4">
-                        <div className="rounded-lg border bg-card p-4">
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-500">Price</span>
-                              <span className="font-medium">€5.00/month</span>
-                            </div>
-                            <Separator />
-                            <h4 className="font-medium text-sm mb-2">Your benefits:</h4>
-                            <ul className="space-y-2 text-sm">
-                              <li className="flex items-center">
-                                <Check className="h-4 w-4 mr-2 text-green-500" />
-                                <span>Unlimited listings</span>
-                              </li>
-                              <li className="flex items-center">
-                                <Check className="h-4 w-4 mr-2 text-green-500" />
-                                <span>No per-listing fees</span>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        
-                        <Button variant="outline" className="w-full">
-                          Manage Subscription
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="rounded-lg border bg-card p-4">
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-500">Free Listing</span>
-                              <span className="font-medium">{user.freeListingsUsed === 0 ? "Available" : "Used"}</span>
-                            </div>
-                            <div className="pt-1 text-sm">
-                              <p>€1.00 fee per additional listing</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="rounded-lg border border-primary bg-primary/5 p-4">
-                          <div className="space-y-3 text-sm">
-                            <p>Need to add more car listings?</p>
-                            <p>Each additional listing beyond your free monthly listing costs €1.00.</p>
-                            <p>All listings expire after 1 month.</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                {/* Payment History Card */}
-                <Card className="md:col-span-2">
-                  <CardHeader>
-                    <CardTitle>Payment History</CardTitle>
-                    <CardDescription>Recent transactions and payments</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingPayments ? (
-                      <div className="flex justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    ) : payments && payments.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-3 px-4 font-medium">Date</th>
-                              <th className="text-left py-3 px-4 font-medium">Description</th>
-                              <th className="text-right py-3 px-4 font-medium">Amount</th>
-                              <th className="text-right py-3 px-4 font-medium">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {payments.map(payment => (
-                              <tr key={payment.id} className="border-b">
-                                <td className="py-3 px-4 text-sm">
-                                  {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}
-                                </td>
-                                <td className="py-3 px-4 text-sm">
-                                  {payment.description}
-                                </td>
-                                <td className="py-3 px-4 text-sm text-right">
-                                  €{(payment.amount).toFixed(2)}
-                                </td>
-                                <td className="py-3 px-4 text-sm text-right">
-                                  <Badge 
-                                    variant={payment.status === 'completed' ? 'default' : 
-                                            payment.status === 'pending' ? 'outline' : 'destructive'}
-                                    className="capitalize"
-                                  >
-                                    {payment.status}
-                                  </Badge>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                        <h3 className="text-lg font-medium mb-1">No Payment History</h3>
-                        <p className="text-gray-500">You haven't made any payments yet</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-              
-
-            </TabsContent>
-            
-            {/* Payments Tab */}
-            <TabsContent value="payments">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Payment History</h2>
-              </div>
-              
-              {isLoadingPayments ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : payments && payments.length > 0 ? (
-                <div className="space-y-4">
-                  {payments.map((payment) => (
-                    <Card key={payment.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center mb-1">
-                              <h3 className="font-medium">{payment.description}</h3>
-                              <Badge 
-                                variant={payment.status === "completed" ? "default" : "outline"}
-                                className="ml-2"
-                              >
-                                {payment.status}
-                              </Badge>
-                            </div>
-                            <p className="text-gray-600 text-sm">
-                              {payment.createdAt ? new Date(payment.createdAt).toLocaleString() : 'Just now'}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">€{payment.amount.toFixed(2)}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card className="py-8">
-                  <CardContent className="flex flex-col items-center justify-center text-center">
-                    <div className="bg-gray-100 p-3 rounded-full mb-4">
-                      <CreditCard className="h-8 w-8 text-gray-500" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">No Payment History</h3>
-                    <p className="text-gray-500 mb-4 max-w-md">
-                      You haven't made any payments yet. When you add additional car listings, you'll be charged €1.00 per listing beyond your free monthly listing.
-                    </p>
-                    <Link href="/sell">
-                      <Button>
-                        Add a Car Listing
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
+            {/* Payments Tab - Hidden for now */}
           </Tabs>
         </div>
       </main>
