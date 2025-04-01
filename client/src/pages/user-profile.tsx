@@ -60,6 +60,7 @@ export default function UserProfile() {
   const [editedEmail, setEditedEmail] = useState('');
   const [replyingTo, setReplyingTo] = useState<{messageId: number, toUserId: number, carId: number} | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false); // State to track admin status
   const { toast } = useToast();
   
   // Fetch user's cars
@@ -376,6 +377,45 @@ export default function UserProfile() {
     updateProfileMutation.mutate(data);
   };
   
+  // Check if user is admin
+  useEffect(() => {
+    if (user) {
+      // For demo purposes, we'll consider the user with ID 1 as the admin
+      // In a real app, this would be determined by a role on the user record
+      setIsAdmin(user.id === 1);
+    }
+  }, [user]);
+
+  // Cleanup expired listings mutation
+  const cleanupExpiredMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/cleanup-expired-listings", {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Cleanup Successful",
+        description: "Expired car listings have been cleaned up",
+        variant: "default",
+      });
+      
+      // Refresh cars after cleanup
+      queryClient.invalidateQueries({ queryKey: ["/api/cars"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/cars"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Cleanup Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleCleanupExpired = () => {
+    cleanupExpiredMutation.mutate();
+  };
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -483,6 +523,32 @@ export default function UserProfile() {
                           <span className="font-medium">{messages?.length || 0}</span>
                         </div>
                       </div>
+                      
+                      {/* Admin Section */}
+                      {isAdmin && (
+                        <>
+                          <Separator className="my-4" />
+                          <div className="space-y-4">
+                            <div className="text-sm font-semibold">Admin Tools</div>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              className="w-full"
+                              onClick={handleCleanupExpired}
+                              disabled={cleanupExpiredMutation.isPending}
+                            >
+                              {cleanupExpiredMutation.isPending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Cleaning...
+                                </>
+                              ) : (
+                                <>Clean Expired Listings</>
+                              )}
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
