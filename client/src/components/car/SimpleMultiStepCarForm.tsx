@@ -50,9 +50,9 @@ const carFormSchema = insertCarSchema.extend({
   condition: z.enum(["new", "excellent", "good", "fair", "poor"], {
     errorMap: () => ({ message: "Please select a condition" }),
   }),
-  description: z.string().optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
+  fuelType: z.string().min(1, "Fuel type is required"),
+  transmission: z.string().min(1, "Transmission is required"),
 });
 
 // Car makes and models mapping
@@ -324,12 +324,17 @@ export default function SimpleMultiStepCarForm() {
                form.getFieldState("color").invalid === false &&
                form.getFieldState("condition").invalid === false &&
                form.getFieldState("location").invalid === false &&
+               form.getFieldState("transmission").invalid === false &&
+               form.getFieldState("fuelType").invalid === false &&
                !!form.getValues("color") &&
-               !!form.getValues("location");
+               !!form.getValues("location") &&
+               !!form.getValues("transmission") &&
+               !!form.getValues("fuelType");
       case "photos":
         return images.length > 0;
       case "description":
-        return true;
+        return form.getFieldState("description").invalid === false &&
+               !!form.getValues("description");
       default:
         return false;
     }
@@ -503,7 +508,9 @@ export default function SimpleMultiStepCarForm() {
                 name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Color</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Color<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -554,7 +561,9 @@ export default function SimpleMultiStepCarForm() {
                 name="condition"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Condition</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Condition<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -583,7 +592,9 @@ export default function SimpleMultiStepCarForm() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Location<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -612,7 +623,9 @@ export default function SimpleMultiStepCarForm() {
                 name="transmission"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Transmission (Optional)</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Transmission<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -639,7 +652,9 @@ export default function SimpleMultiStepCarForm() {
                 name="fuelType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fuel Type (Optional)</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Fuel Type<span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -668,7 +683,9 @@ export default function SimpleMultiStepCarForm() {
         return (
           <div className="space-y-6">
             <div>
-              <FormLabel>Car Images (Required)</FormLabel>
+              <FormLabel className="flex items-center">
+                Car Images<span className="text-red-500 ml-1">*</span>
+              </FormLabel>
               <FormDescription>
                 Upload clear photos of your car (maximum 5 images). At least one image is required. The first image will be the main photo shown in listings.
               </FormDescription>
@@ -753,7 +770,9 @@ export default function SimpleMultiStepCarForm() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel className="flex items-center">
+                    Description<span className="text-red-500 ml-1">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Describe your car, its features, history, and any other relevant details" 
