@@ -47,6 +47,10 @@ import {
   User as UserIcon,
   Phone,
   AlertTriangle,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
 } from "lucide-react";
 
 interface CarDetailProps {
@@ -60,6 +64,8 @@ export default function CarDetail({ carId }: CarDetailProps) {
   const [contactMessage, setContactMessage] = useState("");
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Fetch car data
   const { data: car, isLoading: isLoadingCar } = useQuery<Car>({
@@ -174,6 +180,28 @@ export default function CarDetail({ carId }: CarDetailProps) {
     sendMessageMutation.mutate();
   };
   
+  // Image lightbox functions
+  const openLightbox = (index: number) => {
+    setCurrentImageIndex(index);
+    setIsLightboxOpen(true);
+  };
+  
+  const closeLightbox = () => {
+    setIsLightboxOpen(false);
+  };
+  
+  const goToPreviousImage = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+  
+  const goToNextImage = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+  
   if (isLoadingCar) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -230,12 +258,19 @@ export default function CarDetail({ carId }: CarDetailProps) {
               {images.map((image, index) => (
                 <CarouselItem key={index}>
                   <AspectRatio ratio={16 / 9}>
-                    <img 
-                      src={image.imageUrl}
-                      alt={`${car.year} ${car.make} ${car.model} - Image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      style={{ pointerEvents: 'none' }}
-                    />
+                    <div 
+                      className="relative w-full h-full cursor-pointer"
+                      onClick={() => openLightbox(index)}
+                    >
+                      <img 
+                        src={image.imageUrl}
+                        alt={`${car.year} ${car.make} ${car.model} - Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 right-2 bg-black bg-opacity-50 p-1 rounded-full">
+                        <Maximize2 className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
                   </AspectRatio>
                 </CarouselItem>
               ))}
@@ -249,14 +284,14 @@ export default function CarDetail({ carId }: CarDetailProps) {
             {images.slice(0, 5).map((image, index) => (
               <div 
                 key={index} 
-                className="relative rounded-md overflow-hidden border"
+                className="relative rounded-md overflow-hidden border cursor-pointer"
+                onClick={() => openLightbox(index)}
               >
                 <AspectRatio ratio={1 / 1}>
                   <img 
                     src={image.imageUrl}
                     alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    style={{ pointerEvents: 'none' }}
+                    className="w-full h-full object-cover hover:opacity-80 transition"
                   />
                 </AspectRatio>
               </div>
@@ -489,6 +524,69 @@ export default function CarDetail({ carId }: CarDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Lightbox */}
+      {isLightboxOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="relative w-full h-full flex flex-col justify-center">
+            {/* Close button */}
+            <button 
+              className="absolute top-4 right-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition"
+              onClick={closeLightbox}
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            {/* Image counter */}
+            <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-lg text-sm">
+              {currentImageIndex + 1} / {images.length}
+            </div>
+            
+            {/* Main image */}
+            <div className="relative max-h-[80vh] flex items-center justify-center p-4">
+              <img 
+                src={images[currentImageIndex].imageUrl} 
+                alt={`${car.year} ${car.make} ${car.model} - Full size`}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+            
+            {/* Navigation buttons */}
+            <button 
+              className="absolute left-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition"
+              onClick={goToPreviousImage}
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+            
+            <button 
+              className="absolute right-4 p-2 text-white bg-black bg-opacity-50 rounded-full hover:bg-opacity-70 transition"
+              onClick={goToNextImage}
+            >
+              <ChevronRight className="h-8 w-8" />
+            </button>
+            
+            {/* Thumbnails */}
+            <div className="flex justify-center mt-4 px-4 gap-2 pb-4 overflow-x-auto">
+              {images.map((image, index) => (
+                <div 
+                  key={index}
+                  className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border-2 cursor-pointer ${
+                    index === currentImageIndex ? 'border-primary' : 'border-transparent'
+                  }`}
+                  onClick={() => setCurrentImageIndex(index)}
+                >
+                  <img 
+                    src={image.imageUrl}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
