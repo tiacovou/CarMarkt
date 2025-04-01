@@ -85,9 +85,7 @@ const carMakes = Object.keys(carMakesAndModels);
 
 // Cyprus towns/cities
 const cyprusTowns = [
-  "Nicosia", "Limassol", "Larnaca", "Paphos", "Famagusta",
-  "Kyrenia", "Morphou", "Paralimni", "Ayia Napa", "Protaras",
-  "Polis", "Peyia", "Pachna", "Pissouri", "Lefkara", "Omodos"
+  "Nicosia", "Limassol", "Larnaca", "Paphos", "Famagusta"
 ];
 
 const fuelTypes = [
@@ -130,7 +128,7 @@ export default function SimpleMultiStepCarForm() {
       price: 0,
       mileage: 0,
       location: "",
-      color: "",
+      color: "black", // Default to black
       condition: "good",
       description: "",
       fuelType: "",
@@ -500,7 +498,7 @@ export default function SimpleMultiStepCarForm() {
                   <FormItem>
                     <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Red, Blue, Silver" {...field} />
+                      <Input value="black" readOnly {...field} className="bg-gray-100" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
