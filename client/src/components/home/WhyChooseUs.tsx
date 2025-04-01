@@ -3,11 +3,6 @@ import { Shield, Users, Zap, Clock } from "lucide-react";
 export default function WhyChooseUs() {
   const features = [
     {
-      icon: <Shield className="h-10 w-10 text-primary" />,
-      title: "Secure Transactions",
-      description: "Our platform provides a safe environment for buying and selling vehicles with fraud protection."
-    },
-    {
       icon: <Users className="h-10 w-10 text-primary" />,
       title: "Phone-Verified Users",
       description: "All users are verified through secure phone verification, ensuring authenticity and building trust within our community."
@@ -28,13 +23,13 @@ export default function WhyChooseUs() {
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="text-center mb-12 lg:mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose CarTrader</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose CarMarkt</h2>
           <p className="text-gray-600 max-w-3xl mx-auto text-lg">
             We're dedicated to providing the best car buying and selling experience with these key benefits
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           {features.map((feature, index) => (
             <div 
               key={index} 
