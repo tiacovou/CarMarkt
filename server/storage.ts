@@ -231,10 +231,16 @@ export class MemStorage implements IStorage {
   }
   
   async getCars(): Promise<Car[]> {
-    return Array.from(this.cars.values()).filter(car => car.isActive);
+    const now = new Date();
+    return Array.from(this.cars.values()).filter(car => {
+      // Filter out inactive cars and expired listings
+      return car.isActive && (!car.expiresAt || car.expiresAt > now);
+    });
   }
   
   async getCarsByUser(userId: number): Promise<Car[]> {
+    // For the car owner, show all their listings, including expired ones
+    // The UI can use the expiresAt field to display expired status
     return Array.from(this.cars.values()).filter(car => car.userId === userId);
   }
   
@@ -243,24 +249,34 @@ export class MemStorage implements IStorage {
   }
   
   async searchCars(search: CarSearch): Promise<Car[]> {
+    const now = new Date();
     return Array.from(this.cars.values()).filter(car => {
+      // Apply search filters
       if (search.make && search.make !== "" && car.make.toLowerCase() !== search.make.toLowerCase()) return false;
       if (search.model && search.model !== "" && car.model.toLowerCase() !== search.model.toLowerCase()) return false;
       if (search.minYear && search.minYear > 0 && car.year < search.minYear) return false;
       if (search.maxPrice && search.maxPrice > 0 && car.price > search.maxPrice) return false;
-      return car.isActive;
+      
+      // Filter out inactive and expired listings
+      return car.isActive && (!car.expiresAt || car.expiresAt > now);
     });
   }
   
   async createCar(car: InsertCar, userId: number): Promise<Car> {
     const id = this.currentCarId++;
     const createdAt = new Date();
+    
+    // Calculate expiration date (1 month from now)
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    
     const newCar: Car = { 
       ...car, 
       id, 
       userId, 
       isActive: true, 
       createdAt,
+      expiresAt,
       fuelType: car.fuelType || null,
       transmission: car.transmission || null,
       color: car.color || null,
@@ -303,6 +319,19 @@ export class MemStorage implements IStorage {
     if (!car) return undefined;
     
     const updatedCar = { ...car, isSold: false };
+    this.cars.set(id, updatedCar);
+    return updatedCar;
+  }
+  
+  async renewCarListing(id: number): Promise<Car | undefined> {
+    const car = this.cars.get(id);
+    if (!car) return undefined;
+    
+    // Calculate new expiration date (1 month from now)
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    
+    const updatedCar = { ...car, expiresAt };
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
