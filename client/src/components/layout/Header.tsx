@@ -78,16 +78,20 @@ export default function Header() {
               <>
                 {/* Messages icon with notification badge */}
                 <div className="hidden md:block relative">
-                  <Link href="/profile?tab=messages">
-                    <Button variant="ghost" size="icon" className="relative" aria-label="Messages">
-                      <MessageSquare className="h-5 w-5" />
-                      {unreadMessages > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center">
-                          {unreadMessages > 9 ? '9+' : unreadMessages}
-                        </Badge>
-                      )}
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative" 
+                    aria-label="Messages"
+                    onClick={() => window.location.href = '/profile?tab=messages'}
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                    {unreadMessages > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center">
+                        {unreadMessages > 9 ? '9+' : unreadMessages}
+                      </Badge>
+                    )}
+                  </Button>
                 </div>
 
                 {/* User dropdown */}
@@ -101,24 +105,22 @@ export default function Header() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile">My Profile</Link>
+                      <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                        My Profile
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile?tab=listings">My Listings</Link>
+                      <DropdownMenuItem onClick={() => window.location.href = '/profile?tab=listings'}>
+                        My Listings
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile?tab=favorites">Saved Cars</Link>
+                      <DropdownMenuItem onClick={() => window.location.href = '/profile?tab=favorites'}>
+                        Saved Cars
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile?tab=messages">
-                          <div className="flex w-full justify-between items-center">
-                            Messages
-                            {unreadMessages > 0 && (
-                              <Badge className="ml-2">{unreadMessages}</Badge>
-                            )}
-                          </div>
-                        </Link>
+                      <DropdownMenuItem onClick={() => window.location.href = '/profile?tab=messages'}>
+                        <div className="flex w-full justify-between items-center">
+                          Messages
+                          {unreadMessages > 0 && (
+                            <Badge className="ml-2">{unreadMessages}</Badge>
+                          )}
+                        </div>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleLogout}>
@@ -129,12 +131,16 @@ export default function Header() {
                 </div>
               </>
             ) : (
-              <Link href="/auth" className="hidden md:block">
-                <Button variant="ghost" className="text-sm lg:text-base">
+              <div className="hidden md:block">
+                <Button 
+                  variant="ghost" 
+                  className="text-sm lg:text-base"
+                  onClick={() => window.location.href = '/auth'}
+                >
                   <User className="h-4 w-4 mr-2" />
                   Account
                 </Button>
-              </Link>
+              </div>
             )}
 
             {/* Mobile Menu Button */}
@@ -150,58 +156,64 @@ export default function Header() {
                 </SheetHeader>
                 <div className="mt-6 flex flex-col space-y-4">
                   {navLinks.map((link, index) => (
-                    <Link key={index} href={link.href}>
-                      <a 
-                        className="text-gray-600 hover:text-primary transition py-2"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {link.text}
-                      </a>
-                    </Link>
+                    <div 
+                      key={index}
+                      className="text-gray-600 hover:text-primary transition py-2 cursor-pointer"
+                      onClick={() => {
+                        window.location.href = link.href;
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {link.text}
+                    </div>
                   ))}
                   
                   {user ? (
                     <>
-                      <Link href="/profile">
-                        <a 
-                          className="text-gray-600 hover:text-primary transition py-2"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          My Profile
-                        </a>
-                      </Link>
-                      <Link href="/profile?tab=listings">
-                        <a 
-                          className="text-gray-600 hover:text-primary transition py-2"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          My Listings
-                        </a>
-                      </Link>
-                      <Link href="/profile?tab=favorites">
-                        <a 
-                          className="text-gray-600 hover:text-primary transition py-2"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Saved Cars
-                        </a>
-                      </Link>
-                      <Link href="/profile?tab=messages">
-                        <a 
-                          className="text-gray-600 hover:text-primary transition py-2 flex items-center justify-between"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <div className="flex items-center">
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Messages
-                          </div>
-                          {unreadMessages > 0 && (
-                            <Badge className="ml-2">
-                              {unreadMessages > 9 ? '9+' : unreadMessages}
-                            </Badge>
-                          )}
-                        </a>
-                      </Link>
+                      <div 
+                        className="text-gray-600 hover:text-primary transition py-2 cursor-pointer"
+                        onClick={() => {
+                          window.location.href = '/profile';
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        My Profile
+                      </div>
+                      <div 
+                        className="text-gray-600 hover:text-primary transition py-2 cursor-pointer"
+                        onClick={() => {
+                          window.location.href = '/profile?tab=listings';
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        My Listings
+                      </div>
+                      <div 
+                        className="text-gray-600 hover:text-primary transition py-2 cursor-pointer"
+                        onClick={() => {
+                          window.location.href = '/profile?tab=favorites';
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        Saved Cars
+                      </div>
+                      <div 
+                        className="text-gray-600 hover:text-primary transition py-2 flex items-center justify-between cursor-pointer"
+                        onClick={() => {
+                          window.location.href = '/profile?tab=messages';
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center">
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Messages
+                        </div>
+                        {unreadMessages > 0 && (
+                          <Badge className="ml-2">
+                            {unreadMessages > 9 ? '9+' : unreadMessages}
+                          </Badge>
+                        )}
+                      </div>
                       <Button 
                         variant="ghost" 
                         className="justify-start px-0"
@@ -214,24 +226,26 @@ export default function Header() {
                       </Button>
                     </>
                   ) : (
-                    <Link href="/auth">
-                      <a 
-                        className="text-gray-600 hover:text-primary transition py-2"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Login / Register
-                      </a>
-                    </Link>
+                    <div 
+                      className="text-gray-600 hover:text-primary transition py-2 cursor-pointer"
+                      onClick={() => {
+                        window.location.href = '/auth';
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      Login / Register
+                    </div>
                   )}
                   
-                  <Link href="/sell">
-                    <Button 
-                      className="w-full mt-2"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Sell Your Car
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="w-full mt-2"
+                    onClick={() => {
+                      window.location.href = '/sell';
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Sell Your Car
+                  </Button>
                 </div>
               </SheetContent>
             </Sheet>
