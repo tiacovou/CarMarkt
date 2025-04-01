@@ -1,13 +1,21 @@
 import { Link } from "wouter";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Car, Facebook, Twitter, Instagram, Youtube, Send } from "lucide-react";
+import { Car, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Footer() {
+  const { toast } = useToast();
+  
+  const showComingSoon = (feature: string) => {
+    toast({
+      title: "Coming Soon",
+      description: `${feature} feature will be available soon. Stay tuned!`,
+      duration: 3000,
+    });
+  };
   return (
     <footer className="bg-white text-gray-800">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
@@ -33,13 +41,18 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Menu */}
           <div>
-            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+            <h3 className="font-bold text-lg mb-4">Menu</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/browse">
                   <a className="text-gray-600 hover:text-primary transition">Browse Cars</a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/how-it-works">
+                  <a className="text-gray-600 hover:text-primary transition">How It Works</a>
                 </Link>
               </li>
               <li>
@@ -48,13 +61,20 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition">Car Values</a>
+                <a 
+                  onClick={() => showComingSoon('Pricing')}
+                  className="text-gray-600 hover:text-primary transition cursor-pointer"
+                >
+                  Pricing
+                </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition">Dealer Resources</a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition">Car Reviews</a>
+                <a 
+                  onClick={() => showComingSoon('Dealers')}
+                  className="text-gray-600 hover:text-primary transition cursor-pointer"
+                >
+                  Dealers
+                </a>
               </li>
             </ul>
           </div>
@@ -79,24 +99,6 @@ export default function Footer() {
                 <a href="#" className="text-gray-600 hover:text-primary transition">Terms of Service</a>
               </li>
             </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">Newsletter</h3>
-            <p className="text-gray-600 mb-4">
-              Stay updated with the latest listings and automotive news.
-            </p>
-            <div className="flex">
-              <Input 
-                type="email" 
-                placeholder="Your email" 
-                className="rounded-r-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-white text-gray-800"
-              />
-              <Button type="submit" className="rounded-l-none">
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
 
