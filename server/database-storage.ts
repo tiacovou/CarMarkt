@@ -24,7 +24,7 @@ import {
   InsertPayment,
   CarSearch
 } from "@shared/schema";
-import { PostgreSqlDatabase } from "drizzle-orm/pg-core";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import connectPgSimple from "connect-pg-simple";
 import session from "express-session";
 import { randomBytes } from "crypto";
@@ -206,7 +206,8 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (search.condition) {
-      query = query.where(eq(cars.condition, search.condition));
+      // Convert string to the enum type
+      query = query.where(eq(cars.condition, search.condition as any));
     }
     
     if (search.location) {
