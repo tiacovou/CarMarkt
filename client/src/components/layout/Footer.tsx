@@ -84,7 +84,7 @@ export default function Footer() {
                 <li>
                   <Link href="/sell">
                     <span className="text-gray-600 hover:text-primary transition cursor-pointer">
-                      Sell Your Car
+                      Sell Your Car 1234
                     </span>
                   </Link>
                 </li>

@@ -2,7 +2,7 @@
 name: Deploy to Replit
 on:
   push:
-    branches: [ dev ]  # Deploy when pushing to dev branch
+    branches: [ production ]  # Deploy when pushing to production branch
 jobs:
   deploy:
     runs-on: ubuntu-latest
