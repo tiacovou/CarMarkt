@@ -1,0 +1,13 @@
+
+name: Deploy to Replit
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Replit
+        uses: wei/curl@master
+        with:
+          args: -X POST ${{ secrets.REPLIT_DEPLOYMENT_URL }}
