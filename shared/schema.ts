@@ -36,6 +36,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
 // Car condition enum
 export const conditionEnum = pgEnum("condition", ["new", "excellent", "good", "fair", "poor"]);
 
+// Car status enum
+export const carStatusEnum = pgEnum("car_status", ["available", "sold", "expired", "deleted"]);
+
 // Cars schema
 export const cars = pgTable("cars", {
   id: serial("id").primaryKey(),
@@ -49,10 +52,12 @@ export const cars = pgTable("cars", {
   color: text("color").notNull(),
   fuelType: text("fuel_type"),
   transmission: text("transmission"),
+  bodyType: text("body_type"),
   description: text("description"),
   location: text("location").notNull(),
   isActive: boolean("is_active").default(true),
   isSold: boolean("is_sold").default(false),
+  status: carStatusEnum("status").default("available").notNull(),
   viewCount: integer("view_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
@@ -96,8 +101,8 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 // Messages schema
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
-  fromUserId: integer("from_user_id").notNull().references(() => users.id),
-  toUserId: integer("to_user_id").notNull().references(() => users.id),
+  senderId: integer("sender_id").notNull().references(() => users.id),
+  receiverId: integer("receiver_id").notNull().references(() => users.id),
   carId: integer("car_id").notNull().references(() => cars.id),
   content: text("content").notNull(),
   isRead: boolean("is_read").default(false),
@@ -131,7 +136,17 @@ export const carSearchSchema = z.object({
   make: z.string().default(""),
   model: z.string().default(""),
   minYear: z.number().optional(),
+  maxYear: z.number().optional(),
+  minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
+  minMileage: z.number().optional(),
+  maxMileage: z.number().optional(),
+  condition: z.string().optional(),
+  location: z.string().optional(),
+  fuelType: z.string().optional(),
+  transmission: z.string().optional(),
+  bodyType: z.string().optional(),
+  sortBy: z.enum(['price_asc', 'price_desc', 'year_desc', 'mileage_asc', 'newest']).optional(),
 });
 
 export type CarSearch = z.infer<typeof carSearchSchema>;
