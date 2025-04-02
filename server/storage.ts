@@ -118,9 +118,11 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const expiredCarIds: number[] = [];
     
-    // Find all expired car listings
+    // Find all expired car listings (available cars with expired dates)
     this.cars.forEach((car, id) => {
-      if (car.expiresAt && car.expiresAt < now) {
+      // Check for available cars using the new status field or the old isActive/isSold combo
+      const isAvailable = car.status === "available" || (car.isActive === true && car.isSold === false);
+      if (isAvailable && car.expiresAt && car.expiresAt < now) {
         expiredCarIds.push(id);
       }
     });
@@ -130,14 +132,23 @@ export class MemStorage implements IStorage {
       return;
     }
     
-    console.log(`Found ${expiredCarIds.length} expired listings to delete.`);
+    console.log(`Found ${expiredCarIds.length} expired listings.`);
     
-    // Delete each expired car listing and related data
+    // Mark each expired car listing as "expired"
     for (const carId of expiredCarIds) {
-      await this.hardDeleteCar(carId);
+      const car = this.cars.get(carId);
+      if (car) {
+        // Update with new status field and maintain old fields for compatibility
+        const updatedCar = { 
+          ...car, 
+          status: "expired" as const,
+          isActive: false 
+        };
+        this.cars.set(carId, updatedCar);
+      }
     }
     
-    console.log(`Expired listings cleanup complete. Deleted ${expiredCarIds.length} listings.`);
+    console.log(`Expired listings cleanup complete. Marked ${expiredCarIds.length} listings as expired.`);
   }
   
   // Hard delete a car and its related data (images, favorites, messages)
@@ -187,11 +198,20 @@ export class MemStorage implements IStorage {
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     oneMonthAgo.setDate(oneMonthAgo.getDate() - 1);
     
-    car.expiresAt = oneMonthAgo;
-    car.viewCount = Math.floor(Math.random() * 50); // Random view count for test car
-    this.cars.set(car.id, car);
+    // Update car with expired date and keep status as "available" 
+    // so it can be picked up by the cleanup job
+    const updatedCar = { 
+      ...car, 
+      expiresAt: oneMonthAgo,
+      status: "available" as const,
+      isActive: true,
+      isSold: false,
+      viewCount: Math.floor(Math.random() * 50) // Random view count for test car 
+    } as Car;
     
-    return car;
+    this.cars.set(car.id, updatedCar);
+    
+    return updatedCar;
   }
 
   // User operations
@@ -326,8 +346,8 @@ export class MemStorage implements IStorage {
   async getCars(): Promise<Car[]> {
     const now = new Date();
     return Array.from(this.cars.values()).filter(car => {
-      // Filter out inactive cars and expired listings
-      return car.isActive && (!car.expiresAt || car.expiresAt > now);
+      // Show only available (not sold, expired, or deleted) cars
+      return car.status === "available" && (!car.expiresAt || car.expiresAt > now);
     });
   }
   
@@ -338,7 +358,7 @@ export class MemStorage implements IStorage {
   }
   
   async countUserActiveCars(userId: number): Promise<number> {
-    return Array.from(this.cars.values()).filter(car => car.userId === userId && car.isActive).length;
+    return Array.from(this.cars.values()).filter(car => car.userId === userId && car.status === "available").length;
   }
   
   async searchCars(search: CarSearch): Promise<Car[]> {
@@ -352,8 +372,8 @@ export class MemStorage implements IStorage {
       if (search.minYear && search.minYear > 0 && car.year < search.minYear) return false;
       if (search.maxPrice && search.maxPrice > 0 && car.price > search.maxPrice) return false;
       
-      // Filter out inactive and expired listings
-      return car.isActive && (!car.expiresAt || car.expiresAt > now);
+      // Only show available cars that haven't expired
+      return car.status === "available" && (!car.expiresAt || car.expiresAt > now);
     });
   }
   
@@ -365,11 +385,15 @@ export class MemStorage implements IStorage {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + 1);
     
-    const newCar: Car = { 
+    // Using type casting to ensure TypeScript compatibility
+    const status = "available" as const;
+    
+    const newCar = { 
       ...car, 
       id, 
       userId, 
-      isActive: true, 
+      status,
+      isActive: true,
       isSold: false,
       viewCount: 0,
       createdAt,
@@ -377,8 +401,9 @@ export class MemStorage implements IStorage {
       fuelType: car.fuelType || null,
       transmission: car.transmission || null,
       color: car.color || "",
-      description: car.description || null 
-    };
+      description: car.description || null,
+      bodyType: car.bodyType || null
+    } as Car;
     this.cars.set(id, newCar);
     return newCar;
   }
@@ -387,7 +412,15 @@ export class MemStorage implements IStorage {
     const existingCar = this.cars.get(id);
     if (!existingCar) return undefined;
     
-    const updatedCar = { ...existingCar, ...car };
+    // Handle bodyType specifically
+    const bodyType = car.bodyType !== undefined ? (car.bodyType || null) : existingCar.bodyType;
+    
+    const updatedCar = { 
+      ...existingCar, 
+      ...car,
+      bodyType 
+    } as Car;
+    
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
@@ -396,9 +429,13 @@ export class MemStorage implements IStorage {
     const car = this.cars.get(id);
     if (!car) return false;
     
-    // Soft delete by setting isActive to false
-    car.isActive = false;
-    this.cars.set(id, car);
+    // Soft delete by setting status to "deleted" and keep old fields updated for compatibility
+    const updatedCar = { 
+      ...car, 
+      status: "deleted" as const, 
+      isActive: false
+    };
+    this.cars.set(id, updatedCar);
     return true;
   }
   
@@ -406,7 +443,12 @@ export class MemStorage implements IStorage {
     const car = this.cars.get(id);
     if (!car) return undefined;
     
-    const updatedCar = { ...car, isSold: true };
+    // Update with new status field and maintain old fields for compatibility
+    const updatedCar = { 
+      ...car, 
+      status: "sold" as const,
+      isSold: true
+    };
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
@@ -415,7 +457,13 @@ export class MemStorage implements IStorage {
     const car = this.cars.get(id);
     if (!car) return undefined;
     
-    const updatedCar = { ...car, isSold: false };
+    // Update with new status field and maintain old fields for compatibility
+    const updatedCar = { 
+      ...car, 
+      status: "available" as const,
+      isActive: true,
+      isSold: false
+    };
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
@@ -428,7 +476,17 @@ export class MemStorage implements IStorage {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + 1);
     
-    const updatedCar = { ...car, expiresAt };
+    // Also set status back to available if it was expired
+    const status = car.status === "expired" ? "available" as const : car.status;
+    const isActive = car.status === "expired" ? true : car.isActive;
+    
+    const updatedCar = { 
+      ...car, 
+      expiresAt,
+      status,
+      isActive
+    } as Car;
+    
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
@@ -437,7 +495,11 @@ export class MemStorage implements IStorage {
     const car = this.cars.get(id);
     if (!car) return undefined;
     
-    const updatedCar = { ...car, viewCount: (car.viewCount || 0) + 1 };
+    const updatedCar = { 
+      ...car, 
+      viewCount: (car.viewCount || 0) + 1 
+    } as Car;
+    
     this.cars.set(id, updatedCar);
     return updatedCar;
   }
@@ -497,15 +559,15 @@ export class MemStorage implements IStorage {
   // Message operations
   async getMessages(userId: number): Promise<Message[]> {
     return Array.from(this.messages.values()).filter(
-      msg => msg.toUserId === userId || msg.fromUserId === userId
+      msg => msg.receiverId === userId || msg.senderId === userId
     );
   }
   
   async getMessagesByCarAndUsers(carId: number, userId1: number, userId2: number): Promise<Message[]> {
     return Array.from(this.messages.values()).filter(
       msg => msg.carId === carId && 
-      ((msg.fromUserId === userId1 && msg.toUserId === userId2) || 
-       (msg.fromUserId === userId2 && msg.toUserId === userId1))
+      ((msg.senderId === userId1 && msg.receiverId === userId2) || 
+       (msg.senderId === userId2 && msg.receiverId === userId1))
     );
   }
   
@@ -556,4 +618,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// We'll initialize storage in server/index.ts
+export let storage: IStorage = new MemStorage();

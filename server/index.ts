@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { initDb } from "./db";
+import { storage } from "./storage";
+import { DatabaseStorage } from "./database-storage";
 
 const app = express();
 app.use(express.json());
@@ -37,6 +40,28 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize database connection
+  try {
+    // Initialize database and storage
+    const { db, pool } = await initDb();
+    
+    // Replace in-memory storage with database storage
+    Object.assign(storage, new DatabaseStorage(db, pool));
+    
+    console.log("Database connection established successfully");
+    
+    // Schedule expired listings cleanup to run every hour
+    setInterval(() => {
+      storage.cleanupExpiredListings().catch(err => {
+        console.error("Error cleaning up expired listings:", err);
+      });
+    }, 60 * 60 * 1000); // 1 hour
+    
+  } catch (error) {
+    console.error("Failed to initialize database:", error);
+    console.warn("Falling back to in-memory storage");
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
