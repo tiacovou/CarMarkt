@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Car, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Car, Facebook, Twitter, Instagram, Youtube, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Footer() {
@@ -36,6 +36,12 @@ export default function Footer() {
               </a>
               <a href="#" className="text-gray-600 hover:text-primary transition">
                 <Youtube className="h-5 w-5" />
+              </a>
+            </div>
+            <div className="mt-4">
+              <a href="mailto:info@carmarkt.com.cy" className="text-gray-600 hover:text-primary transition flex items-center">
+                <Mail className="h-4 w-4 mr-2" />
+                <span>info@carmarkt.com.cy</span>
               </a>
             </div>
           </div>
