@@ -124,7 +124,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         make: query.make && (query.make as string).trim() !== "" ? query.make as string : "",
         model: query.model && (query.model as string).trim() !== "" ? query.model as string : "",
         minYear: query.minYear && (query.minYear as string).trim() !== "" ? parseInt(query.minYear as string) : undefined,
-        maxPrice: query.maxPrice && (query.maxPrice as string).trim() !== "" ? parseInt(query.maxPrice as string) : undefined
+        maxYear: query.maxYear && (query.maxYear as string).trim() !== "" ? parseInt(query.maxYear as string) : undefined,
+        minPrice: query.minPrice && (query.minPrice as string).trim() !== "" ? parseInt(query.minPrice as string) : undefined,
+        maxPrice: query.maxPrice && (query.maxPrice as string).trim() !== "" ? parseInt(query.maxPrice as string) : undefined,
+        minMileage: query.minMileage && (query.minMileage as string).trim() !== "" ? parseInt(query.minMileage as string) : undefined,
+        maxMileage: query.maxMileage && (query.maxMileage as string).trim() !== "" ? parseInt(query.maxMileage as string) : undefined,
+        condition: query.condition && (query.condition as string).trim() !== "" ? query.condition as string : undefined,
+        location: query.location && (query.location as string).trim() !== "" ? query.location as string : undefined,
+        fuelType: query.fuelType && (query.fuelType as string).trim() !== "" ? query.fuelType as string : undefined,
+        transmission: query.transmission && (query.transmission as string).trim() !== "" ? query.transmission as string : undefined,
+        bodyType: query.bodyType && (query.bodyType as string).trim() !== "" ? query.bodyType as string : undefined,
+        sortBy: query.sortBy && (query.sortBy as string).trim() !== "" ? query.sortBy as string : undefined
       };
       
       console.log("Search params:", search);

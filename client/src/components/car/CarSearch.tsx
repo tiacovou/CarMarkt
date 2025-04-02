@@ -382,7 +382,23 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
     make: initialSearchParams?.get("make") || "",
     model: initialSearchParams?.get("model") || "",
     minYear: initialSearchParams?.get("minYear") ? parseInt(initialSearchParams.get("minYear")!) : undefined,
+    maxYear: initialSearchParams?.get("maxYear") ? parseInt(initialSearchParams.get("maxYear")!) : undefined,
+    minPrice: initialSearchParams?.get("minPrice") ? parseInt(initialSearchParams.get("minPrice")!) : undefined,
     maxPrice: initialSearchParams?.get("maxPrice") ? parseInt(initialSearchParams.get("maxPrice")!) : undefined,
+    minMileage: initialSearchParams?.get("minMileage") ? parseInt(initialSearchParams.get("minMileage")!) : undefined,
+    maxMileage: initialSearchParams?.get("maxMileage") ? parseInt(initialSearchParams.get("maxMileage")!) : undefined,
+    condition: initialSearchParams?.get("condition") || undefined,
+    location: initialSearchParams?.get("location") || undefined,
+    fuelType: initialSearchParams?.get("fuelType") || undefined,
+    transmission: initialSearchParams?.get("transmission") || undefined,
+    bodyType: initialSearchParams?.get("bodyType") || undefined,
+    sortBy: (() => {
+      const sortValue = initialSearchParams?.get("sortBy");
+      const validSortValues = ['price_asc', 'price_desc', 'year_desc', 'mileage_asc', 'newest'] as const;
+      return sortValue && validSortValues.includes(sortValue as any) 
+        ? sortValue as "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "newest" 
+        : undefined;
+    })(),
   });
   
   // Get the current models based on selected make
@@ -416,10 +432,21 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
         make: value === "any" ? "" : value,
         model: "" // Reset model when make changes
       }));
+    } else if (key === "sortBy") {
+      // Handle sortBy specially to enforce enum type
+      const validSortValues = ['price_asc', 'price_desc', 'year_desc', 'mileage_asc', 'newest'] as const;
+      const sortValue = validSortValues.includes(value as any) 
+        ? value as "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "newest" 
+        : undefined;
+      
+      setSearchParams(prev => ({
+        ...prev,
+        sortBy: sortValue
+      }));
     } else {
       setSearchParams(prev => ({
         ...prev,
-        [key]: key === "minYear" || key === "maxPrice" 
+        [key]: key === "minYear" || key === "maxYear" || key === "minPrice" || key === "maxPrice" || key === "minMileage" || key === "maxMileage"
           ? (value && value !== "any" ? parseInt(value) : undefined) 
           : (value === "any" ? "" : value)
       }));
@@ -451,8 +478,48 @@ export default function CarSearch({ initialSearchParams, onSearch, compact = fal
         queryParams.set("minYear", searchParams.minYear.toString());
       }
       
+      if (searchParams.maxYear && searchParams.maxYear > 0) {
+        queryParams.set("maxYear", searchParams.maxYear.toString());
+      }
+      
+      if (searchParams.minPrice && searchParams.minPrice > 0) {
+        queryParams.set("minPrice", searchParams.minPrice.toString());
+      }
+      
       if (searchParams.maxPrice && searchParams.maxPrice > 0) {
         queryParams.set("maxPrice", searchParams.maxPrice.toString());
+      }
+      
+      if (searchParams.minMileage && searchParams.minMileage > 0) {
+        queryParams.set("minMileage", searchParams.minMileage.toString());
+      }
+      
+      if (searchParams.maxMileage && searchParams.maxMileage > 0) {
+        queryParams.set("maxMileage", searchParams.maxMileage.toString());
+      }
+      
+      if (searchParams.condition) {
+        queryParams.set("condition", searchParams.condition);
+      }
+      
+      if (searchParams.location) {
+        queryParams.set("location", searchParams.location);
+      }
+      
+      if (searchParams.fuelType) {
+        queryParams.set("fuelType", searchParams.fuelType);
+      }
+      
+      if (searchParams.transmission) {
+        queryParams.set("transmission", searchParams.transmission);
+      }
+      
+      if (searchParams.bodyType) {
+        queryParams.set("bodyType", searchParams.bodyType);
+      }
+      
+      if (searchParams.sortBy) {
+        queryParams.set("sortBy", searchParams.sortBy);
       }
       
       console.log("QueryParams string:", queryParams.toString()); // Debug
