@@ -10,6 +10,12 @@ export async function seedDatabase() {
     const isProduction = process.env.REPLIT_DEPLOYMENT === '1';
     console.log(`Checking if database needs seeding (${isProduction ? 'production' : 'development'})...`);
     
+    // Skip seeding in production unless FORCE_SEED is set
+    if (isProduction && !process.env.FORCE_SEED) {
+      console.log('Skipping seed in production to preserve data');
+      return;
+    }
+    
     // Connect to the database  
     const pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
