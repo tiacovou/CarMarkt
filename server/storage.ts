@@ -365,16 +365,45 @@ export class MemStorage implements IStorage {
     const now = new Date();
     console.log("Searching cars with criteria:", JSON.stringify(search));
     
-    return Array.from(this.cars.values()).filter(car => {
+    let results = Array.from(this.cars.values()).filter(car => {
       // Apply search filters - case insensitive for string searches
       if (search.make && search.make !== "" && !car.make.toLowerCase().includes(search.make.toLowerCase())) return false;
       if (search.model && search.model !== "" && !car.model.toLowerCase().includes(search.model.toLowerCase())) return false;
       if (search.minYear && search.minYear > 0 && car.year < search.minYear) return false;
+      if (search.maxYear && search.maxYear > 0 && car.year > search.maxYear) return false;
+      if (search.minPrice && search.minPrice > 0 && car.price < search.minPrice) return false;
       if (search.maxPrice && search.maxPrice > 0 && car.price > search.maxPrice) return false;
+      if (search.minMileage && search.minMileage > 0 && car.mileage < search.minMileage) return false;
+      if (search.maxMileage && search.maxMileage > 0 && car.mileage > search.maxMileage) return false;
+      if (search.condition && car.condition !== search.condition) return false;
+      if (search.location && search.location !== "" && !car.location.toLowerCase().includes(search.location.toLowerCase())) return false;
+      if (search.fuelType && search.fuelType !== "" && car.fuelType !== search.fuelType) return false;
+      if (search.transmission && search.transmission !== "" && car.transmission !== search.transmission) return false;
+      if (search.bodyType && search.bodyType !== "" && car.bodyType !== search.bodyType) return false;
       
       // Only show available cars that haven't expired
       return car.status === "available" && (!car.expiresAt || car.expiresAt > now);
     });
+    
+    // Apply sorting
+    if (search.sortBy) {
+      if (search.sortBy === "price_asc") {
+        results.sort((a, b) => a.price - b.price);
+      } else if (search.sortBy === "price_desc") {
+        results.sort((a, b) => b.price - a.price);
+      } else if (search.sortBy === "year_desc") {
+        results.sort((a, b) => b.year - a.year);
+      } else if (search.sortBy === "mileage_asc") {
+        results.sort((a, b) => a.mileage - b.mileage);
+      } else if (search.sortBy === "newest") {
+        results.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+      }
+    } else {
+      // Default sort - newest first
+      results.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    }
+    
+    return results;
   }
   
   async createCar(car: InsertCar, userId: number): Promise<Car> {
