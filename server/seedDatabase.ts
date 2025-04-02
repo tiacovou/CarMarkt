@@ -7,7 +7,8 @@ import { users, cars } from '../shared/schema';
 
 export async function seedDatabase() {
   try {
-    console.log('Checking if database needs seeding...');
+    const isProduction = process.env.REPLIT_DEPLOYMENT === '1';
+    console.log(`Checking if database needs seeding (${isProduction ? 'production' : 'development'})...`);
     
     // Connect to the database  
     const pool = new pg.Pool({
