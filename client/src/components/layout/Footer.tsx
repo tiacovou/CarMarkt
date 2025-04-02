@@ -1,3 +1,4 @@
+
 import { Link } from "wouter";
 import { Car, Facebook, Twitter, Instagram, Youtube, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -84,7 +85,7 @@ export default function Footer() {
                 <li>
                   <Link href="/sell">
                     <span className="text-gray-600 hover:text-primary transition cursor-pointer">
-                      Sell Your Car 1234
+                      Sell Your Car
                     </span>
                   </Link>
                 </li>
