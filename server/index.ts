@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initDb } from "./db";
-import { storage } from "./storage";
+import { storage, setStorageImplementation } from "./storage";
 import { DatabaseStorage } from "./database-storage";
 
 const app = express();
@@ -46,7 +46,8 @@ app.use((req, res, next) => {
     const { db, pool } = await initDb();
     
     // Replace in-memory storage with database storage
-    Object.assign(storage, new DatabaseStorage(db, pool));
+    const dbStorage = new DatabaseStorage(db, pool);
+    setStorageImplementation(dbStorage);
     
     console.log("Database connection established successfully");
     
