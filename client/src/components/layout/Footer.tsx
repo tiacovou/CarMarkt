@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Footer() {
   const { toast } = useToast();
-  
+
   const showComingSoon = (feature: string) => {
     toast({
       title: "Coming Soon",
@@ -22,26 +22,42 @@ export default function Footer() {
               <img src="/carmarkt.png" alt="CarMarkt.com.cy" className="h-14" />
             </div>
             <p className="text-gray-600 mb-6">
-              The trusted marketplace for buying and selling cars. Connect with buyers and sellers in your area.
+              The trusted marketplace for buying and selling cars. Connect with
+              buyers and sellers in your area.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-600 hover:text-primary transition">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-primary transition"
+              >
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-primary transition"
+              >
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-primary transition"
+              >
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-primary transition"
+              >
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
             <div className="mt-4">
-              <a href="mailto:info@carmarkt.com.cy" className="text-gray-600 hover:text-primary transition flex items-center">
+              <a
+                href="mailto:info@carmarkt.com.cy"
+                className="text-gray-600 hover:text-primary transition flex items-center"
+              >
                 <Mail className="h-4 w-4 mr-2" />
-                <span>info@carmarkt.com.cy</span>
+                <span>info@carmarkt.com.cyniaou</span>
               </a>
             </div>
           </div>
@@ -53,30 +69,36 @@ export default function Footer() {
               <ul className="space-y-3">
                 <li>
                   <Link href="/browse">
-                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">Browse Cars</span>
+                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">
+                      Browse Cars
+                    </span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/how-it-works">
-                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">How It Works</span>
+                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">
+                      How It Works
+                    </span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/sell">
-                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">Sell Your Car</span>
+                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">
+                      Sell Your Car
+                    </span>
                   </Link>
                 </li>
                 <li>
-                  <span 
-                    onClick={() => showComingSoon('Pricing')}
+                  <span
+                    onClick={() => showComingSoon("Pricing")}
                     className="text-gray-600 hover:text-primary transition cursor-pointer"
                   >
                     Pricing
                   </span>
                 </li>
                 <li>
-                  <span 
-                    onClick={() => showComingSoon('Dealers')}
+                  <span
+                    onClick={() => showComingSoon("Dealers")}
                     className="text-gray-600 hover:text-primary transition cursor-pointer"
                   >
                     Dealers
@@ -93,12 +115,16 @@ export default function Footer() {
               <ul className="space-y-3">
                 <li>
                   <Link href="/privacy-policy">
-                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">Privacy Policy</span>
+                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">
+                      Privacy Policy
+                    </span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/terms-of-service">
-                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">Terms of Service</span>
+                    <span className="text-gray-600 hover:text-primary transition cursor-pointer">
+                      Terms of Service
+                    </span>
                   </Link>
                 </li>
               </ul>
@@ -107,7 +133,9 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-200 pt-8 text-center text-gray-600">
-          <p>&copy; {new Date().getFullYear()} CarMarkt. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} CarMarkt. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
