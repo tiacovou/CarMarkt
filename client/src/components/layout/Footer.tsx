@@ -57,7 +57,7 @@ export default function Footer() {
                 className="text-gray-600 hover:text-primary transition flex items-center"
               >
                 <Mail className="h-4 w-4 mr-2" />
-                <span>info@carmarkt.com.cyniaou</span>
+                <span>info@carmarkt.com.cy</span>
               </a>
             </div>
           </div>
