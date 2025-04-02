@@ -2,12 +2,14 @@
 name: Deploy to Replit
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]  # Deploy when pushing to dev branch
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Replit
+      - uses: actions/checkout@v2
+      
+      - name: Deploy to Replit Production
         uses: wei/curl@master
         with:
           args: -X POST ${{ secrets.REPLIT_DEPLOYMENT_URL }}
