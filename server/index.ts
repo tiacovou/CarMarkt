@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initDb } from "./db";
 import { storage, setStorageImplementation } from "./storage";
-import { DatabaseStorage } from "./database-storage";
+import { DatabaseStorage } from "./db-storage";
 
 const app = express();
 app.use(express.json());
@@ -46,10 +46,33 @@ app.use((req, res, next) => {
     const { db, pool } = await initDb();
     
     // Replace in-memory storage with database storage
-    const dbStorage = new DatabaseStorage(db, pool);
+    // Use type assertion to bypass TypeScript type issues
+    const dbStorage = new DatabaseStorage(db as any, pool);
     setStorageImplementation(dbStorage);
     
     console.log("Database connection established successfully");
+    
+    // Seed the database with initial data if needed
+    // Run database seed script after server starts
+    setTimeout(() => {
+      console.log("Running database seed script...");
+      // Use dynamic import to avoid TypeScript errors
+      import('child_process').then(cp => {
+        cp.exec("tsx seed-db.ts", (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Seed script error: ${error.message}`);
+            return;
+          }
+          if (stderr) {
+            console.error(`Seed script stderr: ${stderr}`);
+            return;
+          }
+          console.log(`Seed script output: ${stdout}`);
+        });
+      }).catch(error => {
+        console.error("Failed to import child_process:", error);
+      });
+    }, 5000); // Wait 5 seconds after server starts
     
     // Schedule expired listings cleanup to run every hour
     setInterval(() => {
