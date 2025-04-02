@@ -620,3 +620,8 @@ export class MemStorage implements IStorage {
 
 // We'll initialize storage in server/index.ts
 export let storage: IStorage = new MemStorage();
+
+// Function to replace the storage implementation
+export function setStorageImplementation(newStorage: IStorage): void {
+  storage = newStorage;
+}
